@@ -1306,6 +1306,151 @@
     // ========================================================================
     // DEMO SEED — embedded sample archive (25 entries over ~30 days)
     // ========================================================================
+    // ── DEMO PHOTOS ──
+    // Generates tasteful atmospheric SVG images as Blobs.
+    // Each scene is built from soft warm gradients and minimal abstract shapes.
+    // Returns a Blob suitable for the photoBlob field.
+    function makeDemoPhoto(kind) {
+        const W = 480, H = 360;
+        let inner = '';
+        const grad = (id, stops) => '<linearGradient id="' + id + '" x1="0" y1="0" x2="0" y2="1">' +
+            stops.map(s => '<stop offset="' + s[0] + '" stop-color="' + s[1] + '"/>').join('') +
+            '</linearGradient>';
+        const rgrad = (id, stops, cx, cy, r) => '<radialGradient id="' + id + '" cx="' + cx + '" cy="' + cy + '" r="' + r + '">' +
+            stops.map(s => '<stop offset="' + s[0] + '" stop-color="' + s[1] + '"/>').join('') +
+            '</radialGradient>';
+
+        let defs = '', body = '';
+
+        if (kind === 'window') {
+            // Morning light through a window — sheer curtain glow
+            defs = grad('skyW', [['0%','#3a3225'],['50%','#5a4830'],['100%','#2a2218']]) +
+                   rgrad('lightW', [['0%','rgba(220,180,100,0.5)'],['60%','rgba(180,140,80,0.15)'],['100%','transparent']], '50%', '40%', '60%');
+            body = '<rect width="480" height="360" fill="#1a1410"/>' +
+                   '<rect x="60" y="40" width="360" height="280" fill="url(#skyW)"/>' +
+                   '<rect x="60" y="40" width="360" height="280" fill="url(#lightW)"/>' +
+                   '<line x1="240" y1="40" x2="240" y2="320" stroke="#2a1f15" stroke-width="3"/>' +
+                   '<line x1="60" y1="180" x2="420" y2="180" stroke="#2a1f15" stroke-width="3"/>' +
+                   '<rect x="40" y="20" width="400" height="20" fill="#0e0a06"/>' +
+                   '<rect x="40" y="320" width="400" height="20" fill="#0e0a06"/>';
+        } else if (kind === 'cup') {
+            // Empty coffee cup on a wooden surface
+            defs = grad('tableC', [['0%','#3a2818'],['100%','#1e1408']]) +
+                   rgrad('cupC', [['0%','#6a5038'],['100%','#3a2818']], '50%', '40%', '50%');
+            body = '<rect width="480" height="360" fill="url(#tableC)"/>' +
+                   '<ellipse cx="240" cy="200" rx="140" ry="80" fill="rgba(0,0,0,0.4)"/>' +
+                   '<ellipse cx="240" cy="180" rx="120" ry="40" fill="url(#cupC)"/>' +
+                   '<ellipse cx="240" cy="180" rx="120" ry="40" fill="none" stroke="#7a5a35" stroke-width="2"/>' +
+                   '<ellipse cx="240" cy="180" rx="100" ry="25" fill="#1a0e04"/>' +
+                   '<path d="M360 175 Q 400 175 400 200 Q 400 225 365 225" fill="none" stroke="#7a5a35" stroke-width="6"/>' +
+                   // Subtle steam wisps
+                   '<path d="M220 150 Q 215 130 225 110 Q 235 90 230 70" fill="none" stroke="rgba(220,200,160,0.15)" stroke-width="3"/>' +
+                   '<path d="M250 150 Q 260 130 250 110" fill="none" stroke="rgba(220,200,160,0.1)" stroke-width="2"/>';
+        } else if (kind === 'street') {
+            // Quiet empty street at dusk
+            defs = grad('skyS', [['0%','#3a2818'],['40%','#5a3818'],['100%','#1a1008']]) +
+                   grad('roadS', [['0%','#1a1410'],['100%','#0a0604']]);
+            body = '<rect width="480" height="180" fill="url(#skyS)"/>' +
+                   '<rect y="180" width="480" height="180" fill="url(#roadS)"/>' +
+                   // Buildings
+                   '<rect x="0" y="100" width="120" height="80" fill="#0e0806"/>' +
+                   '<rect x="120" y="80" width="80" height="100" fill="#120a08"/>' +
+                   '<rect x="200" y="110" width="100" height="70" fill="#0e0806"/>' +
+                   '<rect x="300" y="90" width="80" height="90" fill="#120a08"/>' +
+                   '<rect x="380" y="100" width="100" height="80" fill="#0e0806"/>' +
+                   // Lit windows scattered
+                   '<rect x="40" y="140" width="6" height="10" fill="rgba(220,180,100,0.6)"/>' +
+                   '<rect x="140" y="120" width="6" height="10" fill="rgba(220,180,100,0.5)"/>' +
+                   '<rect x="320" y="130" width="6" height="10" fill="rgba(220,180,100,0.6)"/>' +
+                   // Road perspective lines
+                   '<line x1="240" y1="180" x2="240" y2="360" stroke="rgba(120,90,50,0.2)" stroke-width="2" stroke-dasharray="20 20"/>' +
+                   // Lone streetlamp glow
+                   '<circle cx="100" cy="170" r="3" fill="#ffd680"/>' +
+                   '<circle cx="100" cy="170" r="20" fill="rgba(255,180,80,0.15)"/>';
+        } else if (kind === 'bench') {
+            // Park bench in soft afternoon light
+            defs = grad('skyB', [['0%','#4a4028'],['100%','#2a2418']]) +
+                   grad('groundB', [['0%','#3a3018'],['100%','#1a1408']]);
+            body = '<rect width="480" height="200" fill="url(#skyB)"/>' +
+                   '<rect y="200" width="480" height="160" fill="url(#groundB)"/>' +
+                   // Distant tree silhouettes
+                   '<ellipse cx="80" cy="180" rx="60" ry="40" fill="#1a1408" opacity="0.7"/>' +
+                   '<ellipse cx="400" cy="170" rx="70" ry="50" fill="#1a1408" opacity="0.7"/>' +
+                   // Bench
+                   '<rect x="160" y="220" width="160" height="8" fill="#3a2818"/>' +
+                   '<rect x="160" y="240" width="160" height="8" fill="#3a2818"/>' +
+                   '<rect x="170" y="220" width="6" height="60" fill="#3a2818"/>' +
+                   '<rect x="304" y="220" width="6" height="60" fill="#3a2818"/>' +
+                   '<rect x="160" y="200" width="6" height="48" fill="#3a2818"/>' +
+                   '<rect x="314" y="200" width="6" height="48" fill="#3a2818"/>' +
+                   '<rect x="160" y="200" width="160" height="6" fill="#3a2818"/>';
+        } else if (kind === 'doorway') {
+            // Doorway with light spilling through
+            defs = grad('wallD', [['0%','#1e1610'],['100%','#0a0604']]) +
+                   rgrad('lightD', [['0%','rgba(240,200,120,0.7)'],['70%','rgba(180,140,80,0.1)'],['100%','transparent']], '50%', '50%', '50%');
+            body = '<rect width="480" height="360" fill="url(#wallD)"/>' +
+                   '<rect x="180" y="60" width="120" height="280" fill="#0a0604" stroke="#3a2818" stroke-width="3"/>' +
+                   '<rect x="190" y="70" width="100" height="260" fill="url(#lightD)"/>' +
+                   // Floor reflection
+                   '<rect x="100" y="320" width="280" height="40" fill="rgba(180,140,80,0.08)"/>';
+        } else if (kind === 'book') {
+            // Open book on table
+            defs = grad('tableK', [['0%','#3a2818'],['100%','#1a1008']]) +
+                   grad('pageK', [['0%','#c4b59a'],['100%','#8a7a5a']]);
+            body = '<rect width="480" height="360" fill="url(#tableK)"/>' +
+                   '<ellipse cx="240" cy="280" rx="200" ry="20" fill="rgba(0,0,0,0.5)"/>' +
+                   // Book pages (perspective)
+                   '<polygon points="80,260 240,180 240,250 100,310" fill="url(#pageK)"/>' +
+                   '<polygon points="240,180 400,260 380,310 240,250" fill="url(#pageK)" opacity="0.85"/>' +
+                   // Spine
+                   '<line x1="240" y1="180" x2="240" y2="250" stroke="#3a2818" stroke-width="2"/>' +
+                   // Text lines
+                   '<g stroke="#3a2818" stroke-width="1" opacity="0.6">' +
+                   '<line x1="120" y1="220" x2="220" y2="180"/>' +
+                   '<line x1="120" y1="235" x2="225" y2="195"/>' +
+                   '<line x1="125" y1="250" x2="228" y2="210"/>' +
+                   '<line x1="130" y1="265" x2="230" y2="225"/>' +
+                   '<line x1="255" y1="190" x2="370" y2="240"/>' +
+                   '<line x1="255" y1="205" x2="370" y2="255"/>' +
+                   '<line x1="255" y1="220" x2="365" y2="270"/>' +
+                   '</g>';
+        } else if (kind === 'chair') {
+            // Empty chair in soft window light
+            defs = grad('roomCH', [['0%','#2a1e10'],['100%','#0e0806']]) +
+                   rgrad('lightCH', [['0%','rgba(220,180,100,0.4)'],['100%','transparent']], '70%', '30%', '60%');
+            body = '<rect width="480" height="360" fill="url(#roomCH)"/>' +
+                   '<rect width="480" height="360" fill="url(#lightCH)"/>' +
+                   // Chair (simple wooden silhouette)
+                   '<rect x="200" y="150" width="80" height="120" fill="#2a1810"/>' +
+                   '<rect x="200" y="100" width="80" height="80" fill="#2a1810"/>' +
+                   '<rect x="200" y="270" width="10" height="60" fill="#2a1810"/>' +
+                   '<rect x="270" y="270" width="10" height="60" fill="#2a1810"/>' +
+                   // Highlight on chair edge from window
+                   '<rect x="278" y="100" width="3" height="170" fill="rgba(220,180,100,0.3)"/>';
+        } else if (kind === 'sky') {
+            // Quiet evening sky from a window
+            defs = grad('skyN', [['0%','#1a1828'],['40%','#3a2820'],['100%','#1a1008']]);
+            body = '<rect width="480" height="360" fill="url(#skyN)"/>' +
+                   // Distant horizon line
+                   '<line x1="0" y1="240" x2="480" y2="240" stroke="rgba(220,180,100,0.15)" stroke-width="1"/>' +
+                   // Faint stars
+                   '<circle cx="80" cy="60" r="0.8" fill="rgba(220,200,160,0.5)"/>' +
+                   '<circle cx="160" cy="40" r="1" fill="rgba(220,200,160,0.7)"/>' +
+                   '<circle cx="240" cy="80" r="0.6" fill="rgba(220,200,160,0.4)"/>' +
+                   '<circle cx="320" cy="50" r="0.8" fill="rgba(220,200,160,0.6)"/>' +
+                   '<circle cx="400" cy="70" r="0.6" fill="rgba(220,200,160,0.5)"/>' +
+                   '<circle cx="120" cy="120" r="0.5" fill="rgba(220,200,160,0.3)"/>' +
+                   '<circle cx="360" cy="110" r="0.7" fill="rgba(220,200,160,0.5)"/>';
+        } else {
+            // fallback — soft warm gradient
+            defs = grad('fallback', [['0%','#3a2818'],['100%','#0a0604']]);
+            body = '<rect width="480" height="360" fill="url(#fallback)"/>';
+        }
+
+        const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '"><defs>' + defs + '</defs>' + body + '</svg>';
+        return new Blob([svg], { type: 'image/svg+xml' });
+    }
+
     function getDemoSeed() {
         const now = Date.now();
         const DAY = 86400000;
@@ -1340,10 +1485,26 @@
         ];
         // Sort so tallyNumber 1 = oldest
         raw.sort(function(a, b) { return b[0] - a[0]; });
+
+        // Curated photo assignments — by tallyNumber, mapping to scene kinds
+        // These are spread across the dataset to make ~7 entries feel photographically anchored.
+        // Each scene matches the emotional content of the entry.
+        const photoMap = {
+            3:  { kind: 'cup',     name: 'morning-coffee.svg' },
+            5:  { kind: 'doorway', name: 'jacket-on-the-hook.svg' },
+            8:  { kind: 'street',  name: 'pulled-over.svg' },
+            12: { kind: 'book',    name: 'her-handwriting.svg' },
+            15: { kind: 'window',  name: 'long-way-around.svg' },
+            18: { kind: 'bench',   name: 'cologne-aisle.svg' },
+            22: { kind: 'chair',   name: 'his-color.svg' },
+            24: { kind: 'sky',     name: 'always-the-song.svg' }
+        };
+
         return raw.map(function(r, i) {
             const d = new Date(now - r[0] * DAY);
             d.setHours(r[1], r[2], 0, 0);
             const tallyNumber = i + 1;
+            const photo = photoMap[tallyNumber];
             return {
                 id: 'demo_' + tallyNumber,
                 tallyNumber: tallyNumber,
@@ -1353,7 +1514,8 @@
                 note: r[3],
                 trigger: r[4],
                 intensity: r[5],
-                photoBlob: null, photoName: null,
+                photoBlob: photo ? makeDemoPhoto(photo.kind) : null,
+                photoName: photo ? photo.name : null,
                 videoBlob: null, videoName: null,
                 audioBlob: null, audioName: null, audioRecorded: false
             };
@@ -1699,6 +1861,32 @@
         // Pre-recovery snapshot — capture what's actually in IDB before any merging
         const preCount = (await getAllEntries()).length;
         logRecovery('PRE-RECOVERY: ' + preCount + ' entries in IndexedDB (' + APP_MODE + ' mode, db: ' + DB_NAME + ')');
+
+        // ── DEMO MEDIA UPGRADE ──
+        // If demo seed already loaded but photos are missing, patch them in place.
+        // Non-destructive: only adds photoBlob/photoName to existing demo entries that should have them.
+        if (APP_MODE === 'DEMO' && preCount > 0) {
+            const demoMediaVersion = await getMeta('demoMediaVersion');
+            if (demoMediaVersion !== 1) {
+                logRecovery('Upgrading demo entries with photo media');
+                const seed = getDemoSeed();
+                const seedById = {};
+                seed.forEach(function(s) { seedById[s.id] = s; });
+                const existing = await getAllEntries();
+                let patched = 0;
+                for (const entry of existing) {
+                    const seedEntry = seedById[entry.id];
+                    if (seedEntry && seedEntry.photoBlob && !entry.photoBlob) {
+                        entry.photoBlob = seedEntry.photoBlob;
+                        entry.photoName = seedEntry.photoName;
+                        await saveEntry(entry);
+                        patched++;
+                    }
+                }
+                await setMeta('demoMediaVersion', 1);
+                logRecovery('Patched ' + patched + ' demo entries with photos');
+            }
+        }
 
         // Auto-backup before any migration logic — safety first
         const schemaVersion = await getMeta('schemaVersion');
