@@ -1,0 +1,2995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Ledger</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #161210;
+            --bg-raised: #1e1a16;
+            --bg-inset: #120f0c;
+            --text: #ddd8d0;
+            --text-dim: #8a8278;
+            --text-faint: #5a554e;
+            --accent: #9d8b6d;
+            --accent-dim: #7a6e58;
+            --accent-glow: #c4b5a0;
+            --border: #2a2520;
+            --border-hover: #3a342c;
+        }
+
+        body {
+            font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .shell {
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 0 20px 80px;
+        }
+
+        /* ── HEADER ── */
+        header {
+            padding: 48px 0 0;
+            margin-bottom: 8px;
+        }
+        .brand {
+            font-size: 15px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--text);
+        }
+        .brand-sub {
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: var(--text-faint);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            text-transform: lowercase;
+            margin-top: 4px;
+        }
+
+        /* ── NAV ── */
+        .nav {
+            display: flex;
+            gap: 28px;
+            padding: 20px 0 14px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 36px;
+        }
+        .nav-tab {
+            background: none;
+            border: none;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 12px;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--text-faint);
+            cursor: pointer;
+            padding: 0 0 10px;
+            position: relative;
+            transition: color 0.2s;
+        }
+        .nav-tab:hover { color: var(--text-dim); }
+        .nav-tab.active { color: var(--accent-glow); }
+        .nav-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -14px;
+            left: 0; right: 0;
+            height: 1px;
+            background: var(--accent);
+        }
+
+        /* ── SECTIONS ── */
+        .section { display: none; }
+        .section.active { display: block; }
+
+        /* ── HERO CARD ── */
+        .hero {
+            border: 1px solid var(--border);
+            padding: 36px 28px 32px;
+            margin-bottom: 32px;
+            text-align: center;
+            position: relative;
+        }
+        .hero-count {
+            font-size: 72px;
+            font-weight: 300;
+            color: var(--accent-glow);
+            line-height: 1;
+            letter-spacing: -2px;
+            margin-bottom: 6px;
+        }
+        .hero-label {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-faint);
+            margin-bottom: 20px;
+        }
+        .hero-divider {
+            width: 32px;
+            height: 1px;
+            background: var(--border);
+            margin: 0 auto 16px;
+        }
+        .hero-meta {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 11px;
+            color: var(--text-dim);
+            line-height: 1.8;
+        }
+        .hero-meta span {
+            display: block;
+        }
+        .hero-trigger {
+            color: var(--accent);
+            font-style: italic;
+        }
+
+        /* ── V3: HERO INSIGHT ── */
+        .hero-insight {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 11px;
+            color: var(--text-faint);
+            font-style: italic;
+            margin-top: 12px;
+        }
+
+        /* ── STAT ROW ── */
+        .stat-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1px;
+            background: var(--border);
+            border: 1px solid var(--border);
+            margin-bottom: 36px;
+        }
+        .stat-cell {
+            background: var(--bg);
+            padding: 20px 16px;
+            text-align: center;
+        }
+        .stat-num {
+            font-size: 24px;
+            font-weight: 300;
+            color: var(--accent-glow);
+            margin-bottom: 4px;
+        }
+        .stat-label {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 9px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-faint);
+        }
+
+        /* ── LOG BUTTON ── */
+        .log-btn {
+            display: block;
+            width: 100%;
+            background: none;
+            border: 1px solid var(--accent-dim);
+            color: var(--accent-glow);
+            padding: 16px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+        .log-btn:hover {
+            background: var(--accent-dim);
+            color: var(--bg);
+            border-color: var(--accent-dim);
+        }
+
+        /* ── DEMO LOCKED STATE ── */
+        .demo-locked {
+            opacity: 0.55;
+            cursor: not-allowed;
+            position: relative;
+        }
+        .demo-locked::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+        .log-btn.demo-locked:hover {
+            background: none;
+            color: var(--accent-glow);
+            border-color: var(--accent-dim);
+        }
+
+        /* ── MODAL ── */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 8, 6, 0.88);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-body {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            width: 100%;
+            max-width: 420px;
+            padding: 40px 32px 32px;
+            position: relative;
+            max-height: 92vh;
+            overflow-y: auto;
+        }
+        .modal-close {
+            position: absolute;
+            top: 16px; right: 20px;
+            background: none; border: none;
+            color: var(--text-faint);
+            font-size: 18px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .modal-close:hover { color: var(--text-dim); }
+
+        .modal-tally {
+            text-align: center;
+            font-size: 56px;
+            font-weight: 300;
+            color: var(--accent);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .modal-time {
+            text-align: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 11px;
+            color: var(--text-faint);
+            margin-bottom: 36px;
+        }
+
+        /* ── FORM ── */
+        .field { margin-bottom: 24px; }
+        .field-label {
+            display: block;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 9px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-faint);
+            margin-bottom: 10px;
+        }
+        textarea, select {
+            width: 100%;
+            background: var(--bg-inset);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 14px 16px;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+        textarea { min-height: 100px; }
+        textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--accent-dim);
+        }
+        textarea::placeholder { color: var(--text-faint); font-style: italic; }
+        select {
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a554e'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+            cursor: pointer;
+        }
+
+        /* ── SLIDER ── */
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .slider-track {
+            flex: 1;
+            position: relative;
+            height: 28px;
+            display: flex;
+            align-items: center;
+        }
+        input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 2px;
+            background: var(--border);
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            background: var(--accent);
+            margin-top: -6px;
+            border: 2px solid var(--bg);
+            transition: background 0.15s;
+        }
+        input[type="range"]::-moz-range-track {
+            height: 2px;
+            background: var(--border);
+            border: none;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 2px solid var(--bg);
+            cursor: pointer;
+        }
+        .slider-val {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 18px;
+            font-weight: 300;
+            color: var(--accent-glow);
+            min-width: 28px;
+            text-align: right;
+        }
+        .slider-bounds {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 6px;
+            padding: 0 2px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 9px;
+            color: var(--text-faint);
+            letter-spacing: 0.5px;
+        }
+
+        /* ── INTENSITY DISPLAY (refined mobile layout) ── */
+        .intensity-display {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .intensity-display .i-num {
+            font-family: "Iowan Old Style", Palatino, Georgia, serif;
+            font-size: 28px;
+            font-weight: 300;
+            color: var(--accent-glow);
+            line-height: 1;
+        }
+        .intensity-display .i-divider {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 11px;
+            color: var(--text-faint);
+            letter-spacing: 0.5px;
+        }
+        .intensity-display .i-dot {
+            color: var(--text-faint);
+            font-size: 12px;
+            margin: 0 2px;
+        }
+        .intensity-display .i-label {
+            font-family: "Iowan Old Style", Palatino, Georgia, serif;
+            font-size: 14px;
+            color: var(--accent);
+            font-style: italic;
+        }
+        .i-slider {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+            margin: 0;
+            padding: 12px 0;
+        }
+        .i-slider::-webkit-slider-runnable-track {
+            height: 2px;
+            background: linear-gradient(to right, var(--border) 0%, var(--accent-dim) 100%);
+        }
+        .i-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            background: var(--accent-glow);
+            margin-top: -8px;
+            border: 2px solid var(--bg);
+            box-shadow: 0 0 8px rgba(196,181,160,0.3);
+        }
+        .i-slider::-moz-range-track {
+            height: 2px;
+            background: linear-gradient(to right, var(--border) 0%, var(--accent-dim) 100%);
+            border: none;
+        }
+        .i-slider::-moz-range-thumb {
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            background: var(--accent-glow);
+            border: 2px solid var(--bg);
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(196,181,160,0.3);
+        }
+
+        .submit-btn {
+            display: block;
+            width: 100%;
+            background: none;
+            border: 1px solid var(--accent-dim);
+            color: var(--accent-glow);
+            padding: 15px;
+            margin-top: 32px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+        .submit-btn:hover {
+            background: var(--accent-dim);
+            color: var(--bg);
+        }
+
+        /* ── TIMELINE ── */
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 28px;
+        }
+        .search-input {
+            flex: 1;
+            background: var(--bg-inset);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 10px 14px;
+            font-family: inherit;
+            font-size: 13px;
+            transition: border-color 0.2s;
+        }
+        .search-input::placeholder { color: var(--text-faint); font-style: italic; }
+        .search-input:focus { outline: none; border-color: var(--accent-dim); }
+        .filter-select {
+            min-width: 130px;
+            background: var(--bg-inset);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 10px 32px 10px 14px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 12px;
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a554e'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            cursor: pointer;
+        }
+        .filter-select:focus { outline: none; border-color: var(--accent-dim); }
+
+        .entry {
+            border-bottom: 1px solid var(--border);
+            padding: 22px 0;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .entry:first-child { padding-top: 0; }
+        .entry:hover { background: var(--bg-raised); margin: 0 -20px; padding-left: 20px; padding-right: 20px; }
+        .entry-top {
+            display: flex;
+            align-items: baseline;
+            gap: 14px;
+            margin-bottom: 6px;
+        }
+        .entry-num {
+            font-size: 13px;
+            font-weight: 400;
+            color: var(--accent);
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+        }
+        .entry-date {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 11px;
+            color: var(--text-faint);
+            margin-left: auto;
+        }
+        .entry-note {
+            font-size: 14px;
+            color: var(--text);
+            line-height: 1.65;
+            margin-bottom: 8px;
+        }
+        .entry-tags {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 10px;
+            color: var(--text-faint);
+            letter-spacing: 0.3px;
+            display: flex;
+            gap: 16px;
+        }
+
+        .entry-detail {
+            display: none;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+        .entry-detail.show { display: block; }
+        .detail-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        .detail-key {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 9px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-faint);
+            min-width: 72px;
+            padding-top: 2px;
+        }
+        .detail-val {
+            color: var(--text-dim);
+            font-size: 13px;
+        }
+        .detail-val-note {
+            color: var(--text-dim);
+            font-size: 13px;
+            white-space: pre-wrap;
+            line-height: 1.65;
+        }
+
+        /* ── ANALYTICS ── */
+        .analytics-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            background: var(--border);
+            border: 1px solid var(--border);
+            margin-bottom: 36px;
+        }
+        .analytics-cell {
+            background: var(--bg);
+            padding: 22px 18px;
+        }
+        .a-num {
+            font-size: 28px;
+            font-weight: 300;
+            color: var(--accent-glow);
+            margin-bottom: 4px;
+        }
+        .a-label {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 9px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-faint);
+        }
+
+        .triggers-heading {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-faint);
+            margin-bottom: 20px;
+        }
+        .trigger-row {
+            margin-bottom: 18px;
+        }
+        .trigger-top {
+            display: flex;
+            justify-content: space-between;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+        .trigger-name { color: var(--text-dim); }
+        .trigger-count { color: var(--text-faint); }
+        .trigger-bar {
+            height: 3px;
+            background: var(--bg-inset);
+            overflow: hidden;
+        }
+        .trigger-fill {
+            height: 100%;
+            background: var(--accent-dim);
+            transition: width 0.3s;
+        }
+
+        /* ── EMPTY STATE ── */
+        .empty {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--text-faint);
+            font-size: 13px;
+            font-style: italic;
+        }
+
+        /* ── V2: MEDIA SECTION (Modal) ── */
+        .media-section {
+            margin-top: 20px;
+        }
+        .media-row {
+            margin-bottom: 12px;
+            position: relative;
+        }
+        .media-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: var(--bg-inset);
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+            padding: 10px 38px 10px 14px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 12px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            line-height: 1.4;
+        }
+        .media-btn:hover {
+            border-color: var(--accent-dim);
+        }
+        .media-btn .fname {
+            color: var(--accent);
+        }
+        .media-clear {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 38px;
+            height: 100%;
+            background: none;
+            border: none;
+            color: var(--text-faint);
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .media-clear:hover {
+            color: var(--text-dim);
+        }
+        .media-thumb {
+            max-width: 120px;
+            margin-top: 8px;
+            border: 1px solid var(--border);
+            display: block;
+        }
+        .rec-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .rec-btn {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 8px 14px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 11px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .rec-btn:hover {
+            border-color: var(--accent-dim);
+        }
+        .rec-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #c44;
+            margin-right: 6px;
+            animation: rec-pulse 1s ease-in-out infinite;
+        }
+        @keyframes rec-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* ── V2: DETAIL MEDIA ── */
+        .detail-media {
+            margin-top: 12px;
+        }
+        .detail-media img,
+        .detail-media video {
+            max-width: 100%;
+            border: 1px solid var(--border);
+            display: block;
+            margin-top: 4px;
+        }
+        .detail-media audio {
+            width: 100%;
+            margin-top: 4px;
+        }
+        .detail-media-item {
+            margin-bottom: 16px;
+        }
+
+        /* ── V2: MEDIA BADGE (Timeline) ── */
+        .media-badge {
+            color: var(--accent);
+            font-style: italic;
+        }
+
+        /* ── V3: DETAIL ACCENT LINE ── */
+        .detail-accent-line {
+            height: 1px;
+            background: var(--accent-dim);
+            margin-bottom: 16px;
+            opacity: 0.4;
+        }
+
+        /* ── V3: MEDIA DIVIDER (Modal) ── */
+        .media-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 20px 0;
+        }
+
+        /* ── V3: INTENSITY DISTRIBUTION ── */
+        .intensity-dist { margin-bottom: 28px; }
+
+        /* ── V3: INSIGHT SENTENCES ── */
+        .insight-sentences {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+        }
+        .insight-line {
+            font-size: 13px;
+            color: var(--text-dim);
+            font-style: italic;
+            line-height: 1.8;
+            margin-bottom: 4px;
+        }
+
+        /* ── V3: MEDIA STAT LINE ── */
+        .media-stat-line {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 11px;
+            color: var(--text-faint);
+            margin-top: 20px;
+            margin-bottom: 28px;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 480px) {
+            .shell { padding: 0 16px 80px; }
+            header { padding-top: 36px; }
+            .hero { padding: 28px 20px 24px; }
+            .hero-count { font-size: 56px; }
+            .stat-row { grid-template-columns: 1fr 1fr 1fr; }
+            .analytics-row { grid-template-columns: 1fr 1fr; }
+            .modal-body { padding: 32px 24px 24px; }
+            .filters { flex-direction: column; }
+            .filter-select { min-width: auto; }
+        }
+
+        /* ── MEMORY VAULT — dark apothecary chamber ── */
+        #vaultOverlay { position:fixed; inset:0; z-index:900; background:#060504; overflow:hidden; display:none; }
+        #vaultOverlay.active { display:block; }
+
+        /* Chamber — the scrollable interior */
+        .vault-chamber {
+            position:absolute; inset:0; overflow:hidden;
+            display:flex; align-items:center; justify-content:center;
+            background: radial-gradient(ellipse at 50% 20%, rgba(30,22,12,0.6) 0%, transparent 50%),
+                        radial-gradient(ellipse at 50% 80%, rgba(20,14,8,0.3) 0%, transparent 60%),
+                        #060504;
+        }
+        #vaultShelves {
+            width: 100%; max-width: 680px;
+            display: flex; flex-direction: column; justify-content: center;
+            transition: opacity 0.5s ease;
+        }
+        #vaultShelves.fading { opacity: 0; }
+        .vault-chamber::before {
+            content:''; position:fixed; top:-5%; left:40%; width:20%; height:40%;
+            background: radial-gradient(ellipse, rgba(200,160,80,0.04) 0%, transparent 70%);
+            pointer-events:none; z-index:1;
+        }
+        /* Structural column ribs on sides */
+        .vault-rib {
+            position:fixed; width:40px; top:0; bottom:0; z-index:2; pointer-events:none;
+            background: linear-gradient(to right, rgba(50,35,18,0.5), rgba(50,35,18,0.0));
+        }
+        .vault-rib.left { left:0; }
+        .vault-rib.right { right:0; background: linear-gradient(to left, rgba(50,35,18,0.5), rgba(50,35,18,0.0)); }
+
+        /* Shelf row */
+        .vault-shelf-row {
+            position:relative; width:90%; max-width:680px; margin:0 auto 6px; z-index:3;
+        }
+        .shelf-surface {
+            height:6px;
+            background: linear-gradient(to bottom, #4a3418, #2a1a0a, #1a0e04);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.7), 0 1px 0 rgba(100,70,30,0.12) inset;
+            border-radius:1px;
+        }
+        .shelf-bottles {
+            display:flex; align-items:flex-end; justify-content:center;
+            gap:8px; padding:0 16px; min-height:110px;
+        }
+        /* Shadow bottles — dim silhouettes on unlit shelves */
+        .shelf-ghost {
+            width:14px; opacity:0.08;
+            display:flex; flex-direction:column; align-items:center;
+        }
+        .shelf-ghost .sg-body { border-radius:2px 2px 4px 4px; background:#3a2a18; }
+        .shelf-ghost .sg-neck { background:#2a1a0a; margin:0 auto; border-radius:1px 1px 0 0; }
+
+        /* Sconce */
+        .vault-sconce {
+            position:absolute; z-index:4;
+        }
+        .sconce-arm { width:6px; height:12px; background:#4a3018; margin:0 auto; border-radius:1px; }
+        .sconce-flame {
+            width:5px; height:8px;
+            background: radial-gradient(ellipse at 50% 80%, #ffcc60, #ff8820 60%, transparent);
+            border-radius:50% 50% 30% 30%;
+            margin:-1px auto 0;
+            animation: sflicker 2.5s ease-in-out infinite alternate;
+        }
+        .sconce-pool {
+            position:absolute; top:-20px; left:50%; transform:translateX(-50%);
+            width:80px; height:80px;
+            background: radial-gradient(ellipse, rgba(255,180,60,0.06) 0%, transparent 70%);
+            pointer-events:none;
+        }
+        @keyframes sflicker {
+            0% { opacity:0.6; transform:scaleY(1) scaleX(1); }
+            33% { opacity:1; transform:scaleY(1.15) scaleX(0.9); }
+            66% { opacity:0.75; transform:scaleY(0.9) scaleX(1.05); }
+            100% { opacity:0.85; transform:scaleY(1.05) scaleX(0.95); }
+        }
+
+        /* Active bottle on shelf */
+        .v-bottle {
+            position:relative; cursor:pointer;
+            display:flex; flex-direction:column; align-items:center;
+            transition: transform 0.5s cubic-bezier(0.23,1,0.32,1), filter 0.4s;
+            flex-shrink:0;
+        }
+        .v-bottle:hover { transform:translateY(-5px) scale(1.1); z-index:10; }
+        .v-bottle:hover .v-glow { opacity:0.65; }
+        .v-bottle:hover .v-label { opacity:1; }
+        .v-glass {
+            position:relative; border-radius:3px 3px 7px 7px; overflow:hidden;
+            box-shadow: 0 0 1px rgba(255,255,255,0.06) inset;
+        }
+        .v-glass::after {
+            content:''; position:absolute; top:10%; left:16%; width:22%; height:55%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.2), transparent);
+            border-radius:2px; pointer-events:none;
+        }
+        .v-neck { margin:0 auto; border-radius:2px 2px 0 0; opacity:0.5; }
+        .v-cork { margin:0 auto; background:linear-gradient(to bottom,#a08040,#6a5028); border-radius:3px 3px 2px 2px; }
+        .v-glow {
+            position:absolute; bottom:-8px; left:50%; transform:translateX(-50%);
+            width:180%; height:90%; border-radius:50%;
+            opacity:0.25; filter:blur(14px);
+            pointer-events:none; transition:opacity 0.4s;
+        }
+        .v-label {
+            position:absolute; bottom:calc(100% + 6px); left:50%; transform:translateX(-50%);
+            font-family:-apple-system,sans-serif; font-size:8px; letter-spacing:1px;
+            color:rgba(196,181,160,0.7); white-space:nowrap;
+            opacity:0; transition:opacity 0.3s;
+        }
+        @keyframes breathe { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-2px)} }
+        .v-bottle { animation: breathe 4s ease-in-out infinite; }
+
+        /* Back button */
+        #vaultClose {
+            position:fixed; top:20px; left:20px; z-index:920;
+            background:rgba(10,8,6,0.85); border:1px solid rgba(157,139,109,0.2);
+            color:#c4b5a0; padding:10px 18px;
+            font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+            font-size:11px; letter-spacing:1px; text-transform:uppercase; cursor:pointer;
+            backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+        }
+        #vaultClose:hover { background:rgba(10,8,6,0.95); border-color:rgba(157,139,109,0.4); }
+
+        /* Focus overlay */
+        .vault-focus {
+            position:fixed; inset:0; z-index:950;
+            background:rgba(4,3,2,0);
+            display:flex; align-items:center; justify-content:center; flex-direction:column;
+            transition:background 0.5s; pointer-events:none;
+        }
+        .vault-focus.active { background:rgba(4,3,2,0.92); pointer-events:auto; }
+        .vault-focus-inner {
+            transform:scale(0.6) translateY(20px); opacity:0;
+            transition:transform 0.6s cubic-bezier(0.23,1,0.32,1), opacity 0.5s;
+            display:flex; flex-direction:column; align-items:center;
+            max-width:440px; width:90%;
+        }
+        .vault-focus.active .vault-focus-inner { transform:scale(1) translateY(0); opacity:1; }
+        .focus-mist {
+            width:220px; height:220px; border-radius:50%;
+            filter:blur(50px); opacity:0.2; margin-bottom:-90px; pointer-events:none;
+        }
+        .focus-bottle-big { display:flex; flex-direction:column; align-items:center; margin-bottom:20px; }
+        /* Memory card */
+        .vc { background:rgba(12,10,8,0.96); border:1px solid rgba(157,139,109,0.12); padding:32px 28px; width:100%; text-align:center; }
+        .vc-close { float:right; background:none; border:none; color:#3a3530; font-size:20px; cursor:pointer; line-height:1; padding:0 0 0 12px; }
+        .vc-close:hover { color:#8a8278; }
+        .vc-num { font-family:"Iowan Old Style",Palatino,Georgia,serif; font-size:36px; font-weight:300; color:#c4b5a0; margin-bottom:2px; }
+        .vc-date { font-family:-apple-system,sans-serif; font-size:10px; color:#3a3530; letter-spacing:0.5px; margin-bottom:24px; }
+        .vc-note { font-family:"Iowan Old Style",Palatino,Georgia,serif; font-size:16px; color:#ddd8d0; line-height:1.85; margin-bottom:20px; text-align:left; }
+        .vc-meta { font-family:-apple-system,sans-serif; font-size:10px; color:#3a3530; display:flex; gap:16px; justify-content:center; }
+        .vc-trigger { color:#9d8b6d; font-style:italic; }
+        .vc-media { margin-top:20px; padding-top:16px; border-top:1px solid rgba(42,37,32,0.3); text-align:left; }
+        .vc-media img,.vc-media video { max-width:100%; max-height:220px; border:1px solid rgba(42,37,32,0.3); }
+        .vc-media audio { width:100%; margin-top:8px; }
+        .vault-hint {
+            position:fixed; bottom:28px; left:50%; transform:translateX(-50%); z-index:910;
+            font-family:-apple-system,sans-serif; font-size:9px; letter-spacing:2px;
+            color:rgba(138,130,120,0.2); text-transform:uppercase; pointer-events:none; transition:opacity 1.5s;
+        }
+
+        /* ── BOOT VEIL — render safety while storage initializes ── */
+        #bootVeil {
+            position: fixed; inset: 0; z-index: 9999;
+            background: var(--bg);
+            display: flex; align-items: center; justify-content: center;
+            transition: opacity 0.4s ease;
+        }
+        #bootVeil.hidden { opacity: 0; pointer-events: none; }
+        #bootVeil .veil-mark {
+            font-family: "Iowan Old Style", Palatino, Georgia, serif;
+            font-size: 13px; letter-spacing: 4px; text-transform: uppercase;
+            color: rgba(196, 181, 160, 0.4);
+            animation: veil-pulse 2s ease-in-out infinite;
+        }
+        @keyframes veil-pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.85; }
+        }
+
+        /* ── ARCHIVE MARKERS — vault page navigation ── */
+        .vault-marker {
+            position: fixed;
+            z-index: 915;
+            display: none;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 14px 10px;
+            font-family: "Iowan Old Style", Palatino, Georgia, serif;
+            color: rgba(196, 160, 90, 0.5);
+            transition: color 0.4s, transform 0.4s;
+        }
+        .vault-marker.visible { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .vault-marker:hover { color: rgba(220, 180, 100, 0.95); }
+        .vault-marker.left { left: 16px; top: 50%; transform: translateY(-50%); }
+        .vault-marker.right { right: 16px; top: 50%; transform: translateY(-50%); }
+        .vault-marker:hover.left { transform: translateY(-50%) translateX(-3px); }
+        .vault-marker:hover.right { transform: translateY(-50%) translateX(3px); }
+        .marker-sigil {
+            font-size: 22px;
+            line-height: 1;
+            text-shadow: 0 0 12px rgba(220,180,100,0.4);
+            opacity: 0.8;
+        }
+        .marker-line {
+            width: 1px;
+            height: 36px;
+            background: linear-gradient(to bottom, transparent, rgba(196,160,90,0.4), transparent);
+        }
+        .marker-label {
+            font-size: 8px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-family: -apple-system, sans-serif;
+            opacity: 0.6;
+            white-space: nowrap;
+        }
+        .vault-page-indicator {
+            position: fixed;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 910;
+            font-family: -apple-system, sans-serif;
+            font-size: 9px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: rgba(196, 160, 90, 0.35);
+            pointer-events: none;
+            display: none;
+        }
+        .vault-page-indicator.visible { display: block; }
+        .vault-empty {
+            font-family:"Iowan Old Style",Palatino,Georgia,serif; font-size:14px;
+            color:rgba(138,130,120,0.25); font-style:italic; text-align:center; padding-top:40vh;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Boot veil — covers UI until storage check completes (render safety) -->
+<div id="bootVeil"><div class="veil-mark">restoring</div></div>
+
+<div class="shell">
+    <header>
+        <div class="brand">Memory Ledger</div>
+        <div class="brand-sub">a sample memory archive</div>
+    </header>
+
+    <nav class="nav">
+        <button class="nav-tab active" data-tab="dashboard">Ledger</button>
+        <button class="nav-tab" data-tab="timeline">Timeline</button>
+        <button class="nav-tab" data-tab="analytics">Observatory</button>
+        <button class="nav-tab" data-tab="tools">Tools</button>
+    </nav>
+
+    <!-- ── DASHBOARD ── -->
+    <section id="dashboard" class="section active">
+        <div class="hero" id="heroCard">
+            <div class="hero-count" id="totalCount">0</div>
+            <div class="hero-label">Recorded</div>
+            <div class="hero-divider"></div>
+            <div class="hero-meta" id="heroMeta">
+                <span>No entries yet</span>
+            </div>
+            <div class="hero-insight" id="heroInsight"></div>
+        </div>
+
+        <div class="stat-row">
+            <div class="stat-cell">
+                <div class="stat-num" id="todayCount">0</div>
+                <div class="stat-label">Today</div>
+            </div>
+            <div class="stat-cell">
+                <div class="stat-num" id="weekCount">0</div>
+                <div class="stat-label">This Week</div>
+            </div>
+            <div class="stat-cell">
+                <div class="stat-num" id="avgIntensity">-</div>
+                <div class="stat-label">Avg Intensity</div>
+            </div>
+        </div>
+
+        <button class="log-btn" id="logButton">Record a moment</button>
+        <button class="log-btn" id="vaultBtn" style="margin-top: 12px; border-color: var(--border); color: var(--text-dim);">Enter the Vault</button>
+        <div style="margin-top: 48px; text-align: center; font-family: -apple-system, sans-serif; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: rgba(138,130,120,0.25);">an exploration of absence, memory, and time</div>
+    </section>
+
+    <!-- ── TIMELINE ── -->
+    <section id="timeline" class="section">
+        <div class="filters">
+            <input type="text" class="search-input" id="searchInput" placeholder="Search entries...">
+            <select class="filter-select" id="triggerFilter">
+                <option value="">All triggers</option>
+                <option value="memory">Memory</option>
+                <option value="song">Song</option>
+                <option value="place">Place</option>
+                <option value="loneliness">Loneliness</option>
+                <option value="anger">Anger</option>
+                <option value="regret">Regret</option>
+                <option value="curiosity">Curiosity</option>
+                <option value="dream">Dream</option>
+                <option value="photo">Photo</option>
+                <option value="random wave">Random Wave</option>
+            </select>
+            <select class="filter-select" id="mediaFilter">
+                <option value="">All media</option>
+                <option value="has-media">With attachments</option>
+                <option value="no-media">Text only</option>
+            </select>
+        </div>
+        <div id="timelineContainer"></div>
+    </section>
+
+    <!-- ── ANALYTICS ── -->
+    <section id="analytics" class="section">
+        <div class="analytics-row">
+            <div class="analytics-cell">
+                <div class="a-num" id="analyticsTotal">0</div>
+                <div class="a-label">Total</div>
+            </div>
+            <div class="analytics-cell">
+                <div class="a-num" id="analyticsWeek">0</div>
+                <div class="a-label">This Week</div>
+            </div>
+            <div class="analytics-cell">
+                <div class="a-num" id="analyticsAvg">-</div>
+                <div class="a-label">Avg Intensity</div>
+            </div>
+            <div class="analytics-cell">
+                <div class="a-num" id="analyticsPeakHour">-</div>
+                <div class="a-label">Peak Hour</div>
+            </div>
+        </div>
+
+        <div class="triggers-heading">Most Common Triggers</div>
+        <div id="triggerStats"></div>
+        <div id="v3Analytics"></div>
+    </section>
+
+    <!-- ── TOOLS ── -->
+    <section id="tools" class="section">
+
+        <!-- ── VAULT STATUS PANEL ── -->
+        <div class="triggers-heading">Vault Status</div>
+        <div style="background: var(--bg-inset); border: 1px solid var(--border); padding: 16px; margin-bottom: 28px; font-family: -apple-system, sans-serif; font-size: 11px; color: var(--text-dim); line-height: 1.9;">
+            <div>Mode: <span id="statusMode" style="color: var(--accent); letter-spacing: 1px;">PRIVATE</span></div>
+            <div>Stored: <span id="statusCount" style="color: var(--accent-glow);">—</span></div>
+            <div>Rendered: <span id="statusRendered" style="color: var(--accent-glow);">—</span></div>
+            <div>Last backup: <span id="statusLastBackup" style="color: var(--text-faint); font-style: italic;">never</span></div>
+            <div id="statusIntegrity" style="display:none; margin-top:8px; padding-top:8px; border-top:1px solid var(--border); color:var(--accent);"></div>
+        </div>
+
+        <!-- ── BACKUP-FIRST WORKFLOW ── -->
+        <div class="triggers-heading">Backup</div>
+        <button class="log-btn" id="backupNowBtn" style="margin-bottom: 12px;">Backup <span id="backupBtnMode">Private</span> Vault Now</button>
+        <button class="log-btn" id="integrityBtn" style="margin-bottom: 12px;">Run Integrity Check</button>
+        <div id="backupOutput" style="font-family: -apple-system, sans-serif; font-size: 11px; color: var(--accent); padding: 12px; background: var(--bg-inset); border: 1px solid var(--border); display: none; margin-bottom: 28px;"></div>
+
+        <div class="triggers-heading">Recovery Tools</div>
+
+        <div style="margin-bottom: 24px;">
+            <button class="log-btn" id="runRecoveryBtn" style="margin-bottom: 12px;">Run Recovery Scan</button>
+            <div id="recoveryOutput" style="font-family: -apple-system, sans-serif; font-size: 11px; color: var(--text-faint); white-space: pre-wrap; max-height: 200px; overflow-y: auto; padding: 12px; background: var(--bg-inset); border: 1px solid var(--border); display: none;"></div>
+        </div>
+
+        <div class="triggers-heading" style="margin-top: 36px;">Export / Import</div>
+
+        <button class="log-btn" id="exportBtn" style="margin-bottom: 12px;">Export All Data as JSON</button>
+
+        <div style="margin-bottom: 24px;">
+            <label class="field-label">Import Recovery JSON</label>
+            <textarea id="importArea" placeholder="Paste JSON here, or use the file button below..." style="min-height: 80px; margin-bottom: 8px;"></textarea>
+            <div style="display: flex; gap: 8px;">
+                <input type="file" accept=".json,application/json" id="importFileInput" style="display:none">
+                <button class="log-btn" id="importFileBtn" style="flex:1;">Choose JSON File</button>
+                <button class="log-btn" id="importRunBtn" style="flex:1;">Import</button>
+            </div>
+        </div>
+
+        <div id="importOutput" style="font-family: -apple-system, sans-serif; font-size: 11px; color: var(--text-faint); padding: 12px; background: var(--bg-inset); border: 1px solid var(--border); display: none;"></div>
+    </section>
+</div>
+
+<!-- ── MEMORY VAULT — apothecary chamber ── -->
+<div id="vaultOverlay">
+    <div class="vault-chamber" id="vaultChamber">
+        <div class="vault-rib left"></div>
+        <div class="vault-rib right"></div>
+        <div id="vaultShelves"></div>
+    </div>
+    <button id="vaultClose">Return to Ledger</button>
+    <button class="vault-marker left" id="vaultPrev" aria-label="Previous chamber">
+        <div class="marker-sigil">◁</div>
+        <div class="marker-line"></div>
+        <div class="marker-label">earlier</div>
+    </button>
+    <button class="vault-marker right" id="vaultNext" aria-label="Next chamber">
+        <div class="marker-sigil">▷</div>
+        <div class="marker-line"></div>
+        <div class="marker-label">deeper</div>
+    </button>
+    <div class="vault-page-indicator" id="vaultPageInd"></div>
+    <div class="vault-hint" id="vaultHint">click a bottle to open a memory</div>
+    <div class="vault-focus" id="vaultFocus">
+        <div class="vault-focus-inner" id="vaultFocusInner"></div>
+    </div>
+</div>
+
+<!-- ── LOG MODAL ── -->
+<div class="modal" id="logModal">
+    <div class="modal-body">
+        <button class="modal-close" id="closeModal">&times;</button>
+        <div class="modal-tally" id="tallyPreview">#1</div>
+        <div class="modal-time" id="timestampPreview"></div>
+
+        <form id="logForm">
+            <div class="field">
+                <label class="field-label">What happened</label>
+                <textarea id="noteField" placeholder="What surfaced this time..."></textarea>
+            </div>
+
+            <div class="field">
+                <label class="field-label">Trigger</label>
+                <select id="triggerField">
+                    <option value="">Unspecified</option>
+                    <option value="memory">Memory</option>
+                    <option value="song">Song</option>
+                    <option value="place">Place</option>
+                    <option value="loneliness">Loneliness</option>
+                    <option value="anger">Anger</option>
+                    <option value="regret">Regret</option>
+                    <option value="curiosity">Curiosity</option>
+                    <option value="dream">Dream</option>
+                    <option value="photo">Photo</option>
+                    <option value="random wave">Random Wave</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label class="field-label">Intensity</label>
+                <div class="intensity-display">
+                    <span class="i-num" id="intensityValue">5</span>
+                    <span class="i-divider">/ 10</span>
+                    <span class="i-dot">·</span>
+                    <span class="i-label" id="intensityLabel">Pulling at me</span>
+                </div>
+                <input type="range" id="intensityField" min="1" max="10" value="5" class="i-slider">
+            </div>
+
+            <!-- ── V3: DIVIDER BEFORE ATTACHMENTS ── -->
+            <div class="media-divider"></div>
+
+            <!-- ── V2: MEDIA ATTACHMENTS ── -->
+            <div class="media-section">
+                <label class="field-label">Attachments</label>
+
+                <!-- Photo -->
+                <div class="media-row" id="photoRow">
+                    <input type="file" accept="image/*" id="photoInput" style="display:none">
+                    <button type="button" class="media-btn" id="photoBtn">Attach photo</button>
+                    <button type="button" class="media-clear" id="photoClear" style="display:none">&times;</button>
+                    <img class="media-thumb" id="photoThumb" style="display:none">
+                </div>
+
+                <!-- Video -->
+                <div class="media-row" id="videoRow">
+                    <input type="file" accept="video/*" id="videoInput" style="display:none">
+                    <button type="button" class="media-btn" id="videoBtn">Attach video</button>
+                    <button type="button" class="media-clear" id="videoClear" style="display:none">&times;</button>
+                </div>
+
+                <!-- Audio upload -->
+                <div class="media-row" id="audioRow">
+                    <input type="file" accept="audio/*" id="audioInput" style="display:none">
+                    <button type="button" class="media-btn" id="audioBtn">Attach audio</button>
+                    <button type="button" class="media-clear" id="audioClear" style="display:none">&times;</button>
+                </div>
+
+                <!-- Audio recording -->
+                <div class="media-row" id="recRow" style="display:none">
+                    <div class="rec-controls" id="recControls">
+                        <!-- idle state -->
+                        <button type="button" class="rec-btn" id="recStartBtn">Record audio</button>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">Record</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // ========================================================================
+    // APP MODE — DATA SAFETY DIRECTIVE
+    // PRIVATE = real user data. DEMO = sandboxed namespace, never touches private.
+    // ========================================================================
+    const APP_MODE = 'DEMO';
+    const DB_NAME = APP_MODE === 'DEMO' ? 'tazTallyDB_demo' : 'tazTallyDB';
+    const SEED_PATH = APP_MODE === 'DEMO' ? './taz-tally-seed-demo.json' : './taz-tally-seed.json';
+    const LS_LEGACY_KEY = APP_MODE === 'DEMO' ? 'tazTallyState_demo' : 'tazTallyState';
+
+    // ========================================================================
+    // DEMO SEED — embedded sample archive (25 entries over ~30 days)
+    // ========================================================================
+    function getDemoSeed() {
+        const now = Date.now();
+        const DAY = 86400000;
+        // daysAgo, hour, minute, note, trigger, intensity
+        // tallyNumber 1 = oldest (~30 days ago), 25 = most recent
+        const raw = [
+            [30,  8, 12, "Thirty days. A month. Doesn't feel like a unit of time that applies to this.", "random wave", 7],
+            [29, 23, 41, "Couldn't sleep. Just scrolled through old texts until the screen went blurry.", "loneliness", 8],
+            [28,  7, 30, "Made coffee for two on autopilot. Poured the second cup down the drain.", "memory", 6],
+            [27, 14,  3, "The pharmacy clerk said 'have a good one' and I almost laughed.", "random wave", 3],
+            [26, 19, 22, "Their jacket is still on the hook by the door. I can't move it yet.", "place", 9],
+            [25, 11, 15, "Hard morning.", "loneliness", 7],
+            [23, 16, 48, "Saw someone at the park with the same walk. My stomach dropped before my brain caught up.", "memory", 8],
+            [22, 21,  9, "Their playlist came on shuffle in the car. Pulled over and just let it finish.", "song", 9],
+            [21,  9,  0, "A quiet day. That's something.", "random wave", 2],
+            [20, 13, 37, "Caught myself reaching for my phone to tell them about the dog.", "memory", 6],
+            [19, 18, 55, "Anger today. At nothing specific. At everything.", "anger", 7],
+            [18, 10, 20, "Found a grocery list in their handwriting tucked inside a cookbook. Cried on the kitchen floor.", "photo", 10],
+            [17, 22, 14, "Dreamed we were just talking. Nothing important. Woke up furious it wasn't real.", "dream", 8],
+            [16, 15, 45, "Three weeks. Doesn't feel real yet. Doesn't feel like anything.", "random wave", 5],
+            [15,  7, 58, "Walked the long way around to avoid the coffee shop.", "place", 6],
+            [14, 20, 30, "Better day. Finished the book they recommended. Wanted to text them about the ending.", "memory", 4],
+            [13, 12, 11, "Someone at work asked how I was and I said 'fine' so fast it scared me.", "loneliness", 5],
+            [12, 17, 27, "Their cologne at the drugstore. Stood in the aisle too long.", "place", 7],
+            [11,  9, 40, "Regret is a strange animal. Keeps showing up with new teeth.", "regret", 8],
+            [10, 23, 50, "Why didn't I call more. Why didn't I visit more. Why why why.", "regret", 9],
+            [ 9, 14, 19, "Curious about a street they used to mention. Looked it up on the map. Didn't go.", "curiosity", 3],
+            [ 7, 18,  5, "Saw a kid wearing the exact color they loved. Smiled for the first time in days.", "memory", 4],
+            [ 5, 10, 33, "Another ordinary morning. I'm learning what that means now.", "random wave", 2],
+            [ 3, 21,  0, "The song again. Always the song.", "song", 7],
+            [ 1, 20, 44, "Some days the absence is loud. Today it's quiet. I don't know which is worse.", "loneliness", 5]
+        ];
+        // Sort so tallyNumber 1 = oldest
+        raw.sort(function(a, b) { return b[0] - a[0]; });
+        return raw.map(function(r, i) {
+            const d = new Date(now - r[0] * DAY);
+            d.setHours(r[1], r[2], 0, 0);
+            const tallyNumber = i + 1;
+            return {
+                id: 'demo_' + tallyNumber,
+                tallyNumber: tallyNumber,
+                createdAtISO: d.toISOString(),
+                humanDate: formatDate(d),
+                humanTime: formatTime(d),
+                note: r[3],
+                trigger: r[4],
+                intensity: r[5],
+                photoBlob: null, photoName: null,
+                videoBlob: null, videoName: null,
+                audioBlob: null, audioName: null, audioRecorded: false
+            };
+        });
+    }
+
+    // Demo-mode lock toast
+    function showDemoLock(message) {
+        var existing = document.getElementById('demoLockToast');
+        if (existing) existing.remove();
+        var toast = document.createElement('div');
+        toast.id = 'demoLockToast';
+        toast.textContent = message || 'Demo mode only';
+        toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(14,12,10,0.95);border:1px solid rgba(157,139,109,0.3);color:#c4b5a0;padding:18px 28px;font-family:"Iowan Old Style",Palatino,Georgia,serif;font-size:14px;font-style:italic;letter-spacing:0.5px;z-index:10000;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:opacity 0.4s;opacity:0;';
+        document.body.appendChild(toast);
+        requestAnimationFrame(function() { toast.style.opacity = '1'; });
+        setTimeout(function() {
+            toast.style.opacity = '0';
+            setTimeout(function() { toast.remove(); }, 400);
+        }, 2200);
+    }
+
+    // ========================================================================
+    // INDEXEDDB
+    // ========================================================================
+    const DB_VERSION = 1;
+    let db = null;
+
+    function openDB() {
+        return new Promise((resolve, reject) => {
+            const req = indexedDB.open(DB_NAME, DB_VERSION);
+            req.onupgradeneeded = (e) => {
+                const database = e.target.result;
+                if (!database.objectStoreNames.contains('entries')) {
+                    database.createObjectStore('entries', { keyPath: 'id' });
+                }
+                if (!database.objectStoreNames.contains('meta')) {
+                    database.createObjectStore('meta', { keyPath: 'key' });
+                }
+            };
+            req.onsuccess = (e) => { db = e.target.result; resolve(db); };
+            req.onerror = (e) => reject(e.target.error);
+        });
+    }
+
+    function getAllEntries() {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction('entries', 'readonly');
+            const store = tx.objectStore('entries');
+            const req = store.getAll();
+            req.onsuccess = () => {
+                const entries = req.result.sort((a, b) => b.tallyNumber - a.tallyNumber);
+                resolve(entries);
+            };
+            req.onerror = () => reject(req.error);
+        });
+    }
+
+    function saveEntry(entry) {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction('entries', 'readwrite');
+            tx.objectStore('entries').put(entry);
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+        });
+    }
+
+    function getMeta(key) {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction('meta', 'readonly');
+            const req = tx.objectStore('meta').get(key);
+            req.onsuccess = () => resolve(req.result ? req.result.value : undefined);
+            req.onerror = () => reject(req.error);
+        });
+    }
+
+    function setMeta(key, value) {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction('meta', 'readwrite');
+            tx.objectStore('meta').put({ key, value });
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+        });
+    }
+
+    // ========================================================================
+    // RECOVERY SYSTEM — non-destructive, multi-source
+    // ========================================================================
+    const recoveryLog = [];
+
+    function logRecovery(msg) {
+        recoveryLog.push(`[${new Date().toLocaleTimeString()}] ${msg}`);
+        console.log('[TazRecovery]', msg);
+    }
+
+    // Check if an object looks like a tally entry
+    function looksLikeEntry(obj) {
+        if (!obj || typeof obj !== 'object') return false;
+        // Must have at least tallyNumber or createdAtISO
+        return (typeof obj.tallyNumber === 'number' || typeof obj.createdAtISO === 'string' || typeof obj.humanDate === 'string');
+    }
+
+    // Normalize a recovered entry to ensure required fields
+    function normalizeEntry(obj, fallbackTally) {
+        return {
+            id: obj.id || Date.now().toString() + Math.random().toString(36).slice(2,8),
+            tallyNumber: typeof obj.tallyNumber === 'number' ? obj.tallyNumber : fallbackTally,
+            createdAtISO: obj.createdAtISO || new Date().toISOString(),
+            humanDate: obj.humanDate || formatDate(new Date(obj.createdAtISO || Date.now())),
+            humanTime: obj.humanTime || formatTime(new Date(obj.createdAtISO || Date.now())),
+            note: obj.note || '',
+            trigger: obj.trigger || '',
+            intensity: typeof obj.intensity === 'number' ? obj.intensity : 5,
+            photoBlob: obj.photoBlob || null,
+            photoName: obj.photoName || null,
+            videoBlob: obj.videoBlob || null,
+            videoName: obj.videoName || null,
+            audioBlob: obj.audioBlob || null,
+            audioName: obj.audioName || null,
+            audioRecorded: obj.audioRecorded || false
+        };
+    }
+
+    // Step 1: Scan ALL localStorage keys for anything that looks like tally data
+    function scanLocalStorage() {
+        const candidates = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            try {
+                const raw = localStorage.getItem(key);
+                const parsed = JSON.parse(raw);
+
+                // Case A: { entries: [...], nextTallyNumber: N } — the V1 format
+                if (parsed && Array.isArray(parsed.entries) && parsed.entries.length > 0) {
+                    const validEntries = parsed.entries.filter(looksLikeEntry);
+                    if (validEntries.length > 0) {
+                        logRecovery(`Found ${validEntries.length} entries in localStorage key "${key}" (wrapper format)`);
+                        candidates.push(...validEntries);
+                    }
+                    continue;
+                }
+
+                // Case B: Direct array of entries
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    const validEntries = parsed.filter(looksLikeEntry);
+                    if (validEntries.length > 0) {
+                        logRecovery(`Found ${validEntries.length} entries in localStorage key "${key}" (array format)`);
+                        candidates.push(...validEntries);
+                    }
+                    continue;
+                }
+
+                // Case C: Single entry object
+                if (looksLikeEntry(parsed)) {
+                    logRecovery(`Found single entry in localStorage key "${key}"`);
+                    candidates.push(parsed);
+                }
+            } catch (e) {
+                // Not JSON, skip
+            }
+        }
+        return candidates;
+    }
+
+    // Step 2: DOM recovery — scrape visible entries from the current page
+    function scanDOM() {
+        const candidates = [];
+        // Look for elements that contain tally numbers (e.g. "#1", "#2")
+        const allEntryEls = document.querySelectorAll('.entry, .entry-card, [class*="entry"]');
+        allEntryEls.forEach(el => {
+            const numEl = el.querySelector('.entry-num, .entry-tally, [class*="tally"]');
+            const dateEl = el.querySelector('.entry-date, .entry-timestamp, [class*="date"]');
+            const noteEl = el.querySelector('.entry-note, [class*="note"]');
+            const tagsEl = el.querySelector('.entry-tags, .entry-meta, [class*="tags"], [class*="meta"]');
+
+            if (!numEl) return;
+
+            const numMatch = numEl.textContent.match(/#(\d+)/);
+            if (!numMatch) return;
+
+            const tallyNumber = parseInt(numMatch[1]);
+            const note = noteEl ? noteEl.textContent.trim() : '';
+            const dateText = dateEl ? dateEl.textContent.trim() : '';
+
+            // Try to extract trigger and intensity from tags
+            let trigger = '';
+            let intensity = 5;
+            if (tagsEl) {
+                const spans = tagsEl.querySelectorAll('span');
+                spans.forEach(s => {
+                    const t = s.textContent.trim();
+                    const intMatch = t.match(/(\d+)\/10/);
+                    if (intMatch) {
+                        intensity = parseInt(intMatch[1]);
+                    } else if (['memory','song','place','loneliness','anger','regret','curiosity','dream','photo','random wave'].includes(t.toLowerCase())) {
+                        trigger = t.toLowerCase();
+                    }
+                });
+            }
+
+            candidates.push({
+                tallyNumber,
+                note,
+                trigger,
+                intensity,
+                humanDate: dateText || formatDate(new Date()),
+                humanTime: '',
+                createdAtISO: new Date().toISOString(),
+            });
+
+            logRecovery(`DOM recovery: found entry #${tallyNumber}`);
+        });
+
+        return candidates;
+    }
+
+    // Step 3: Safe merge — add recovered entries to IndexedDB without duplicating
+    async function safeMerge(candidates) {
+        if (!candidates.length) return 0;
+
+        const existing = await getAllEntries();
+        const existingTallies = new Set(existing.map(e => e.tallyNumber));
+        const existingIds = new Set(existing.map(e => e.id));
+
+        let imported = 0;
+        let maxTally = existing.reduce((m, e) => Math.max(m, e.tallyNumber || 0), 0);
+        let fallbackTally = maxTally + 1;
+
+        for (const raw of candidates) {
+            // Skip if we already have this exact tally number
+            if (raw.tallyNumber && existingTallies.has(raw.tallyNumber)) {
+                logRecovery(`Skipping duplicate tally #${raw.tallyNumber}`);
+                continue;
+            }
+            // Skip if we have this exact ID
+            if (raw.id && existingIds.has(raw.id)) {
+                logRecovery(`Skipping duplicate id ${raw.id}`);
+                continue;
+            }
+
+            const entry = normalizeEntry(raw, fallbackTally);
+            if (!existingTallies.has(entry.tallyNumber)) {
+                await saveEntry(entry);
+                existingTallies.add(entry.tallyNumber);
+                existingIds.add(entry.id);
+                maxTally = Math.max(maxTally, entry.tallyNumber);
+                fallbackTally = maxTally + 1;
+                imported++;
+                logRecovery(`Imported entry #${entry.tallyNumber}`);
+            }
+        }
+
+        return imported;
+    }
+
+    // Master recovery function — runs on startup
+    async function runRecovery() {
+        logRecovery('Starting recovery scan...');
+
+        // 1. Check IndexedDB first
+        const idbEntries = await getAllEntries();
+        logRecovery(`IndexedDB has ${idbEntries.length} entries`);
+
+        // 2. If IndexedDB is empty, try localStorage
+        if (idbEntries.length === 0) {
+            logRecovery('IndexedDB empty — scanning localStorage...');
+            const lsCandidates = scanLocalStorage();
+            if (lsCandidates.length > 0) {
+                const count = await safeMerge(lsCandidates);
+                logRecovery(`Recovered ${count} entries from localStorage`);
+                // Do NOT delete localStorage — keep as backup
+            } else {
+                logRecovery('No entries found in localStorage');
+            }
+        } else {
+            // IndexedDB has data — still check localStorage for any NEW entries not yet in IDB
+            const lsCandidates = scanLocalStorage();
+            if (lsCandidates.length > 0) {
+                const count = await safeMerge(lsCandidates);
+                if (count > 0) logRecovery(`Merged ${count} new entries from localStorage`);
+            }
+        }
+
+        // 3. DOM fallback — only if still empty after ls scan
+        const afterLS = await getAllEntries();
+        if (afterLS.length === 0) {
+            logRecovery('Still empty — attempting DOM recovery...');
+            const domCandidates = scanDOM();
+            if (domCandidates.length > 0) {
+                const count = await safeMerge(domCandidates);
+                logRecovery(`Recovered ${count} entries from DOM`);
+            }
+        }
+
+        // 4. Seed fallback — if still empty, use embedded demo seed or fetch the bundled seed file
+        const afterDOM = await getAllEntries();
+        if (afterDOM.length === 0) {
+            logRecovery('Still empty — loading seed...');
+            try {
+                let seed;
+                if (APP_MODE === 'DEMO') {
+                    seed = { entries: getDemoSeed(), nextTallyNumber: 26 };
+                    logRecovery('Using embedded demo seed');
+                } else {
+                    const res = await fetch(SEED_PATH, { cache: 'no-store' });
+                    if (!res.ok) {
+                        logRecovery('Seed file not found (' + res.status + ')');
+                        seed = null;
+                    } else {
+                        seed = await res.json();
+                    }
+                }
+                if (seed && seed.entries && seed.entries.length) {
+                    const count = await safeMerge(seed.entries);
+                    logRecovery(`Recovered ${count} entries from seed`);
+                }
+            } catch (err) {
+                logRecovery('Seed load failed: ' + err.message);
+            }
+        }
+
+        // 5. Fix tally continuity
+        const allFinal = await getAllEntries();
+        const maxTally = allFinal.reduce((m, e) => Math.max(m, e.tallyNumber || 0), 0);
+        const storedNext = await getMeta('nextTallyNumber');
+        const correctNext = maxTally + 1;
+        if (!storedNext || storedNext < correctNext) {
+            await setMeta('nextTallyNumber', correctNext);
+            logRecovery(`Set nextTallyNumber to ${correctNext}`);
+        }
+
+        logRecovery(`Recovery complete. ${allFinal.length} total entries.`);
+        return allFinal;
+    }
+
+    // ========================================================================
+    // STATE — in-memory cache loaded from IndexedDB
+    // ========================================================================
+    let entriesCache = [];
+    let nextTallyNumber = 1;
+
+    async function loadFromDB() {
+        // Pre-recovery snapshot — capture what's actually in IDB before any merging
+        const preCount = (await getAllEntries()).length;
+        logRecovery('PRE-RECOVERY: ' + preCount + ' entries in IndexedDB (' + APP_MODE + ' mode, db: ' + DB_NAME + ')');
+
+        // Auto-backup before any migration logic — safety first
+        const schemaVersion = await getMeta('schemaVersion');
+        const CURRENT_SCHEMA = 1;
+        if (preCount > 0 && schemaVersion && schemaVersion < CURRENT_SCHEMA) {
+            // Migration would happen here — auto-backup first as safety net
+            logRecovery('Schema migration needed (' + schemaVersion + ' → ' + CURRENT_SCHEMA + '). Auto-backing up first.');
+            try { await createBackupSnapshot(); } catch (e) { logRecovery('Auto-backup failed: ' + e.message); }
+        }
+        if (!schemaVersion) await setMeta('schemaVersion', CURRENT_SCHEMA);
+
+        entriesCache = await runRecovery();
+        const storedNum = await getMeta('nextTallyNumber');
+        nextTallyNumber = storedNum || 1;
+
+        // Integrity check — never let render show 0 if storage had data
+        if (preCount > 0 && entriesCache.length === 0) {
+            logRecovery('CRITICAL: pre-recovery count was ' + preCount + ' but cache is 0. Re-fetching from IDB.');
+            entriesCache = await getAllEntries();
+        }
+        // Ensure tally never resets backward
+        const maxTally = entriesCache.reduce((m, e) => Math.max(m, e.tallyNumber || 0), 0);
+        if (maxTally + 1 > nextTallyNumber) {
+            nextTallyNumber = maxTally + 1;
+            await setMeta('nextTallyNumber', nextTallyNumber);
+            logRecovery('Tally continuity preserved: nextTallyNumber=' + nextTallyNumber);
+        }
+    }
+
+    // ========================================================================
+    // VAULT STATUS — surface stored vs rendered count, mode, last backup
+    // ========================================================================
+    async function refreshVaultStatus() {
+        const modeEl = document.getElementById('statusMode');
+        const countEl = document.getElementById('statusCount');
+        const renderedEl = document.getElementById('statusRendered');
+        const backupEl = document.getElementById('statusLastBackup');
+        if (modeEl) modeEl.textContent = APP_MODE;
+
+        // Stored count = actual IDB count (source of truth)
+        const stored = await getAllEntries();
+        if (countEl) countEl.textContent = stored.length;
+        if (renderedEl) renderedEl.textContent = entriesCache.length;
+
+        if (backupEl) {
+            const last = await getMeta('lastBackupAt');
+            if (last) {
+                const d = new Date(last);
+                backupEl.textContent = d.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' }) + ' at ' + d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', hour12:true });
+                backupEl.style.fontStyle = 'normal';
+                backupEl.style.color = 'var(--text-dim)';
+            } else {
+                backupEl.textContent = 'never';
+                backupEl.style.fontStyle = 'italic';
+                backupEl.style.color = 'var(--text-faint)';
+            }
+        }
+    }
+
+    // ========================================================================
+    // INTEGRITY CHECK — compare stored vs rendered, recover if mismatched
+    // ========================================================================
+    async function runIntegrityCheck() {
+        const stored = await getAllEntries();
+        const rendered = entriesCache.length;
+        const issues = [];
+        const fixes = [];
+
+        if (stored.length !== rendered) {
+            issues.push('Mismatch: ' + stored.length + ' stored vs ' + rendered + ' rendered');
+            entriesCache = stored;
+            renderDashboard();
+            fixes.push('Re-synced cache from IDB');
+        }
+
+        // Tally continuity
+        const maxTally = stored.reduce(function(m, e) { return Math.max(m, e.tallyNumber || 0); }, 0);
+        const storedNext = await getMeta('nextTallyNumber');
+        if (storedNext < maxTally + 1) {
+            issues.push('Tally desync: nextTallyNumber=' + storedNext + ' but maxTally=' + maxTally);
+            await setMeta('nextTallyNumber', maxTally + 1);
+            nextTallyNumber = maxTally + 1;
+            fixes.push('Tally continuity restored to ' + (maxTally + 1));
+        }
+
+        // Backup recency check
+        const lastBackup = await getMeta('lastBackupAt');
+        if (stored.length > 0 && !lastBackup) {
+            issues.push('No backup ever taken (' + stored.length + ' entries at risk)');
+        }
+
+        const statusEl = document.getElementById('statusIntegrity');
+        if (statusEl) {
+            statusEl.style.display = '';
+            if (issues.length === 0) {
+                statusEl.style.color = 'var(--success, #7a9d6e)';
+                statusEl.textContent = '✓ Integrity OK · stored ' + stored.length + ' · rendered ' + rendered + ' · mode ' + APP_MODE;
+            } else {
+                statusEl.style.color = 'var(--accent)';
+                statusEl.innerHTML = '⚠ Issues found:<br>' + issues.map(function(i) { return '· ' + i; }).join('<br>') +
+                    (fixes.length ? '<br><br>Auto-fixed:<br>' + fixes.map(function(f) { return '· ' + f; }).join('<br>') : '');
+            }
+        }
+        await refreshVaultStatus();
+        return { stored: stored.length, rendered: rendered, issues: issues, fixes: fixes };
+    }
+
+    // ========================================================================
+    // BACKUP HELPER — non-destructive snapshot export
+    // ========================================================================
+    async function createBackupSnapshot() {
+        const entries = await getAllEntries();
+        const ntn = await getMeta('nextTallyNumber');
+        const clean = entries.map(e => {
+            const copy = {...e};
+            // Blobs can't serialize to JSON — strip but keep filenames
+            if (copy.photoBlob instanceof Blob) copy.photoBlob = null;
+            if (copy.videoBlob instanceof Blob) copy.videoBlob = null;
+            if (copy.audioBlob instanceof Blob) copy.audioBlob = null;
+            return copy;
+        });
+        const data = {
+            mode: APP_MODE,
+            entries: clean,
+            nextTallyNumber: ntn || 1,
+            entryCount: clean.length,
+            exportedAt: new Date().toISOString()
+        };
+        const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+        const filename = `taz-tally-${APP_MODE.toLowerCase()}-backup-${ts}-${clean.length}entries.json`;
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+        await setMeta('lastBackupAt', new Date().toISOString());
+        return { filename, count: clean.length };
+    }
+
+    // ========================================================================
+    // UTILITIES
+    // ========================================================================
+    function formatDate(d) {
+        return d.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+    }
+    function formatTime(d) {
+        return d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', hour12:true });
+    }
+    function isToday(iso) { return new Date(iso).toDateString() === new Date().toDateString(); }
+    function isThisWeek(iso) {
+        const diff = (new Date() - new Date(iso)) / 864e5;
+        return diff >= 0 && diff < 7;
+    }
+    function getHour(iso) { return new Date(iso).getHours(); }
+    // Intensity label system — descriptors 1-10
+    const INTENSITY_LABELS = {
+        1: 'Passing thought',
+        2: 'Faint pull',
+        3: 'Lingering thought',
+        4: 'Noticeable ache',
+        5: 'Pulling at me',
+        6: 'Heavy on my mind',
+        7: 'Hard to shake',
+        8: 'Consuming',
+        9: 'Overwhelming',
+        10: 'Unbearable'
+    };
+    function intensityLabel(n) {
+        return INTENSITY_LABELS[Math.max(1, Math.min(10, parseInt(n) || 5))] || '';
+    }
+    function escapeHtml(t) {
+        const d = document.createElement('div');
+        d.textContent = t;
+        return d.innerHTML;
+    }
+
+    function entryHasMedia(e) {
+        return !!(e.photoBlob || e.videoBlob || e.audioBlob);
+    }
+
+    // ========================================================================
+    // OBJECT URL MANAGEMENT
+    // ========================================================================
+    let activeObjectURLs = [];
+
+    function createTrackedURL(blob) {
+        const url = URL.createObjectURL(blob);
+        activeObjectURLs.push(url);
+        return url;
+    }
+    function revokeAllURLs() {
+        activeObjectURLs.forEach(url => URL.revokeObjectURL(url));
+        activeObjectURLs = [];
+    }
+
+    // ========================================================================
+    // DATA
+    // ========================================================================
+    async function createEntryAsync(note, trigger, intensity, media) {
+        const now = new Date();
+        const entry = {
+            id: Date.now().toString(),
+            tallyNumber: nextTallyNumber,
+            createdAtISO: now.toISOString(),
+            humanDate: formatDate(now),
+            humanTime: formatTime(now),
+            note: note || '',
+            trigger: trigger || '',
+            intensity: parseInt(intensity) || 5,
+            // V2 media fields
+            photoBlob: media.photoBlob || null,
+            photoName: media.photoName || null,
+            videoBlob: media.videoBlob || null,
+            videoName: media.videoName || null,
+            audioBlob: media.audioBlob || null,
+            audioName: media.audioName || null,
+            audioRecorded: media.audioRecorded || false
+        };
+        nextTallyNumber++;
+        await saveEntry(entry);
+        await setMeta('nextTallyNumber', nextTallyNumber);
+        // Update cache
+        entriesCache.unshift(entry);
+        return entry;
+    }
+
+    function getTodayCount() { return entriesCache.filter(e => isToday(e.createdAtISO)).length; }
+    function getWeekCount() { return entriesCache.filter(e => isThisWeek(e.createdAtISO)).length; }
+    function getAvgIntensity() {
+        if (!entriesCache.length) return '-';
+        return (entriesCache.reduce((s,e) => s + e.intensity, 0) / entriesCache.length).toFixed(1);
+    }
+    function getPeakHour() {
+        if (!entriesCache.length) return '-';
+        const h = {};
+        entriesCache.forEach(e => { const hr = getHour(e.createdAtISO); h[hr] = (h[hr]||0)+1; });
+        const peak = +Object.keys(h).reduce((a,b) => h[a]>h[b]?a:b);
+        return `${peak===0?12:(peak>12?peak-12:peak)}${peak<12?'AM':'PM'}`;
+    }
+    function getTriggerCounts() {
+        const t = {};
+        entriesCache.forEach(e => { if(e.trigger) t[e.trigger] = (t[e.trigger]||0)+1; });
+        return t;
+    }
+
+    // ========================================================================
+    // V3: ANALYTICS HELPER FUNCTIONS
+    // ========================================================================
+    function getIntensityDistribution() {
+        const bands = { 'Low (1-3)': 0, 'Medium (4-6)': 0, 'High (7-8)': 0, 'Extreme (9-10)': 0 };
+        entriesCache.forEach(e => {
+            if (e.intensity <= 3) bands['Low (1-3)']++;
+            else if (e.intensity <= 6) bands['Medium (4-6)']++;
+            else if (e.intensity <= 8) bands['High (7-8)']++;
+            else bands['Extreme (9-10)']++;
+        });
+        return bands;
+    }
+
+    function getMediaCount() {
+        return entriesCache.filter(e => entryHasMedia(e)).length;
+    }
+
+    function generateInsights() {
+        if (entriesCache.length < 2) return [];
+        const insights = [];
+
+        // Most common trigger
+        const triggers = getTriggerCounts();
+        const triggerEntries = Object.entries(triggers);
+        if (triggerEntries.length > 0) {
+            const top = triggerEntries.sort((a,b) => b[1]-a[1])[0];
+            insights.push(`${top[0].charAt(0).toUpperCase() + top[0].slice(1)} is your most frequent trigger.`);
+        }
+
+        // Peak hour insight
+        if (entriesCache.length >= 3) {
+            const h = {};
+            entriesCache.forEach(e => { const hr = getHour(e.createdAtISO); h[hr] = (h[hr]||0)+1; });
+            const peak = +Object.keys(h).reduce((a,b) => h[a]>h[b]?a:b);
+            const period = peak < 6 ? 'late at night' : peak < 12 ? 'in the morning' : peak < 17 ? 'in the afternoon' : peak < 21 ? 'in the evening' : 'at night';
+            insights.push(`You tend to log ${period}.`);
+        }
+
+        // This week vs last
+        const thisWeek = getWeekCount();
+        if (thisWeek > 0 && entriesCache.length > thisWeek) {
+            insights.push(`${thisWeek} moment${thisWeek === 1 ? '' : 's'} recorded this week.`);
+        }
+
+        return insights.slice(0, 3);
+    }
+
+    function generateDashboardInsight() {
+        if (entriesCache.length < 1) return '';
+
+        // Rotate through different insight types based on entry count
+        const rotation = entriesCache.length % 3;
+
+        if (rotation === 0) {
+            // Most common trigger
+            const triggers = getTriggerCounts();
+            const triggerEntries = Object.entries(triggers);
+            if (triggerEntries.length > 0) {
+                const top = triggerEntries.sort((a,b) => b[1]-a[1])[0];
+                return `Most moments come from <em>${top[0]}</em>.`;
+            }
+        } else if (rotation === 1) {
+            // Average intensity
+            const avg = getAvgIntensity();
+            if (avg !== '-') {
+                return `Average intensity: <em>${avg}</em>.`;
+            }
+        } else {
+            // Peak hour
+            if (entriesCache.length >= 2) {
+                const h = {};
+                entriesCache.forEach(e => { const hr = getHour(e.createdAtISO); h[hr] = (h[hr]||0)+1; });
+                const peak = +Object.keys(h).reduce((a,b) => h[a]>h[b]?a:b);
+                const label = `${peak===0?12:(peak>12?peak-12:peak)}${peak<12?'AM':'PM'}`;
+                return `You log most often at <em>${label}</em>.`;
+            }
+        }
+
+        // Fallback
+        const triggers = getTriggerCounts();
+        const triggerEntries = Object.entries(triggers);
+        if (triggerEntries.length > 0) {
+            const top = triggerEntries.sort((a,b) => b[1]-a[1])[0];
+            return `Most moments come from <em>${top[0]}</em>.`;
+        }
+        return '';
+    }
+
+    // ========================================================================
+    // RENDER
+    // ========================================================================
+    function renderDashboard() {
+        document.getElementById('totalCount').textContent = entriesCache.length;
+        document.getElementById('todayCount').textContent = getTodayCount();
+        document.getElementById('weekCount').textContent = getWeekCount();
+        document.getElementById('avgIntensity').textContent = getAvgIntensity();
+
+        const latest = entriesCache[0];
+        const meta = document.getElementById('heroMeta');
+        if (latest) {
+            let html = `<span>Last recorded ${latest.humanDate}, ${latest.humanTime}</span>`;
+            if (latest.trigger) html += `<span class="hero-trigger">${latest.trigger}</span>`;
+            meta.innerHTML = html;
+        } else {
+            meta.innerHTML = '<span>Nothing recorded yet</span>';
+        }
+
+        // V3: Dashboard insight line
+        document.getElementById('heroInsight').innerHTML = generateDashboardInsight();
+    }
+
+    function renderTimeline(filterTrigger = '', searchText = '', mediaFilter = '') {
+        revokeAllURLs();
+        const container = document.getElementById('timelineContainer');
+        let entries = entriesCache;
+        if (filterTrigger) entries = entries.filter(e => e.trigger === filterTrigger);
+        if (searchText) { const q = searchText.toLowerCase(); entries = entries.filter(e => e.note.toLowerCase().includes(q)); }
+        if (mediaFilter === 'has-media') entries = entries.filter(e => entryHasMedia(e));
+        if (mediaFilter === 'no-media') entries = entries.filter(e => !entryHasMedia(e));
+
+        if (!entries.length) {
+            container.innerHTML = '<div class="empty">Nothing here yet</div>';
+            return;
+        }
+
+        container.innerHTML = entries.map(e => {
+            // Media badges
+            let badges = '';
+            if (e.photoBlob) badges += '<span class="media-badge">photo</span>';
+            if (e.videoBlob) badges += '<span class="media-badge">video</span>';
+            if (e.audioBlob) badges += '<span class="media-badge">audio</span>';
+
+            // V3: Full note in detail if long, with line breaks
+            const detailNote = e.note
+                ? `<div class="detail-row"><span class="detail-key">Note</span><span class="detail-val-note">${escapeHtml(e.note)}</span></div>`
+                : '';
+
+            return `
+            <div class="entry" data-id="${e.id}" onclick="toggleDetail(this)">
+                <div class="entry-top">
+                    <span class="entry-num">#${e.tallyNumber}</span>
+                    <span class="entry-date">${e.humanDate}</span>
+                </div>
+                ${e.note ? `<div class="entry-note">${escapeHtml(e.note.length > 140 ? e.note.substring(0,140) + '...' : e.note)}</div>` : ''}
+                <div class="entry-tags">
+                    ${e.trigger ? `<span>${e.trigger}</span>` : ''}
+                    <span>${e.intensity}/10</span>
+                    <span>${e.humanTime}</span>
+                    ${badges}
+                </div>
+                <div class="entry-detail">
+                    <div class="detail-accent-line"></div>
+                    ${detailNote}
+                    ${e.trigger ? `<div class="detail-row"><span class="detail-key">Trigger</span><span class="detail-val">${e.trigger}</span></div>` : ''}
+                    <div class="detail-row"><span class="detail-key">Intensity</span><span class="detail-val">${e.intensity} / 10 · ${intensityLabel(e.intensity)}</span></div>
+                    <div class="detail-row"><span class="detail-key">Recorded on</span><span class="detail-val">${e.humanDate}, ${e.humanTime}</span></div>
+                    ${renderDetailMedia(e)}
+                </div>
+            </div>
+        `}).join('');
+    }
+
+    function renderDetailMedia(entry) {
+        let html = '';
+        const hasAny = entry.photoBlob || entry.videoBlob || entry.audioBlob;
+        if (!hasAny) return '';
+
+        html += '<div class="detail-media">';
+
+        if (entry.photoBlob) {
+            const url = createTrackedURL(entry.photoBlob);
+            html += `<div class="detail-media-item">
+                <span class="detail-key">Photo</span>
+                <img src="${url}" alt="Attached photo">
+            </div>`;
+        }
+
+        if (entry.videoBlob) {
+            const url = createTrackedURL(entry.videoBlob);
+            html += `<div class="detail-media-item">
+                <span class="detail-key">Video</span>
+                <video src="${url}" controls playsinline></video>
+            </div>`;
+        }
+
+        if (entry.audioBlob) {
+            const url = createTrackedURL(entry.audioBlob);
+            html += `<div class="detail-media-item">
+                <span class="detail-key">Audio</span>
+                <audio src="${url}" controls></audio>
+            </div>`;
+        }
+
+        html += '</div>';
+        return html;
+    }
+
+    function renderAnalytics() {
+        document.getElementById('analyticsTotal').textContent = entriesCache.length;
+        document.getElementById('analyticsWeek').textContent = getWeekCount();
+        document.getElementById('analyticsAvg').textContent = getAvgIntensity();
+        document.getElementById('analyticsPeakHour').textContent = getPeakHour();
+
+        const triggers = getTriggerCounts();
+        const stats = document.getElementById('triggerStats');
+        const keys = Object.keys(triggers);
+        if (!keys.length) { stats.innerHTML = '<div class="empty">No trigger data yet</div>'; } else {
+            const max = Math.max(...Object.values(triggers));
+            const sorted = Object.entries(triggers).sort((a,b) => b[1]-a[1]);
+
+            stats.innerHTML = sorted.map(([name, count]) => `
+                <div class="trigger-row">
+                    <div class="trigger-top">
+                        <span class="trigger-name">${name}</span>
+                        <span class="trigger-count">${count}</span>
+                    </div>
+                    <div class="trigger-bar">
+                        <div class="trigger-fill" style="width:${(count/max)*100}%"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // V3: Intensity distribution
+        const dist = getIntensityDistribution();
+        const maxDist = Math.max(...Object.values(dist), 1);
+        let distHtml = '<div class="triggers-heading" style="margin-top:36px;">Intensity Distribution</div><div class="intensity-dist">';
+        for (const [band, count] of Object.entries(dist)) {
+            distHtml += `<div class="trigger-row">
+                <div class="trigger-top"><span class="trigger-name">${band}</span><span class="trigger-count">${count}</span></div>
+                <div class="trigger-bar"><div class="trigger-fill" style="width:${(count/maxDist)*100}%"></div></div>
+            </div>`;
+        }
+        distHtml += '</div>';
+
+        // V3: Media stat
+        const mediaCount = getMediaCount();
+        if (mediaCount > 0) {
+            distHtml += `<div class="media-stat-line">${mediaCount} entr${mediaCount === 1 ? 'y' : 'ies'} with attachments</div>`;
+        }
+
+        // V3: Insights
+        const insights = generateInsights();
+        if (insights.length > 0) {
+            distHtml += '<div class="insight-sentences">';
+            insights.forEach(i => { distHtml += `<div class="insight-line">${i}</div>`; });
+            distHtml += '</div>';
+        }
+
+        document.getElementById('v3Analytics').innerHTML = distHtml;
+    }
+
+    // ========================================================================
+    // MEDIA STATE (Modal)
+    // ========================================================================
+    let selectedPhoto = null;    // File object
+    let selectedVideo = null;    // File object
+    let selectedAudio = null;    // File object
+    let recordedAudioBlob = null;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let recPreviewURL = null;
+    let photoThumbURL = null;
+
+    function clearMediaState() {
+        selectedPhoto = null;
+        selectedVideo = null;
+        selectedAudio = null;
+        recordedAudioBlob = null;
+        recordedChunks = [];
+
+        // Stop any active recording
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+            if (mediaRecorder.stream) {
+                mediaRecorder.stream.getTracks().forEach(t => t.stop());
+            }
+        }
+        mediaRecorder = null;
+
+        // Revoke preview URLs
+        if (recPreviewURL) { URL.revokeObjectURL(recPreviewURL); recPreviewURL = null; }
+        if (photoThumbURL) { URL.revokeObjectURL(photoThumbURL); photoThumbURL = null; }
+
+        // Reset file inputs
+        document.getElementById('photoInput').value = '';
+        document.getElementById('videoInput').value = '';
+        document.getElementById('audioInput').value = '';
+
+        // Reset buttons
+        document.getElementById('photoBtn').innerHTML = 'Attach photo';
+        document.getElementById('photoClear').style.display = 'none';
+        document.getElementById('photoThumb').style.display = 'none';
+        document.getElementById('photoThumb').src = '';
+
+        document.getElementById('videoBtn').innerHTML = 'Attach video';
+        document.getElementById('videoClear').style.display = 'none';
+
+        document.getElementById('audioBtn').innerHTML = 'Attach audio';
+        document.getElementById('audioClear').style.display = 'none';
+
+        // Reset recording controls
+        renderRecIdle();
+    }
+
+    // ========================================================================
+    // RECORDING UI STATES
+    // ========================================================================
+    function renderRecIdle() {
+        const controls = document.getElementById('recControls');
+        controls.innerHTML = '<button type="button" class="rec-btn" id="recStartBtn">Record audio</button>';
+        document.getElementById('recStartBtn').addEventListener('click', startRecording);
+    }
+
+    function renderRecRecording() {
+        const controls = document.getElementById('recControls');
+        controls.innerHTML = '<button type="button" class="rec-btn" id="recStopBtn"><span class="rec-indicator"></span>Stop</button>';
+        document.getElementById('recStopBtn').addEventListener('click', stopRecording);
+    }
+
+    function renderRecDone() {
+        const controls = document.getElementById('recControls');
+        controls.innerHTML = `
+            <button type="button" class="rec-btn" id="recPlayBtn">Play preview</button>
+            <button type="button" class="rec-btn" id="recDiscardBtn">Discard</button>
+        `;
+        document.getElementById('recPlayBtn').addEventListener('click', playRecPreview);
+        document.getElementById('recDiscardBtn').addEventListener('click', discardRecording);
+    }
+
+    let recAudioEl = null;
+
+    function playRecPreview() {
+        if (!recordedAudioBlob) return;
+        if (recPreviewURL) URL.revokeObjectURL(recPreviewURL);
+        recPreviewURL = URL.createObjectURL(recordedAudioBlob);
+        if (!recAudioEl) {
+            recAudioEl = new Audio();
+        }
+        recAudioEl.src = recPreviewURL;
+        recAudioEl.play();
+    }
+
+    function discardRecording() {
+        recordedAudioBlob = null;
+        recordedChunks = [];
+        if (recPreviewURL) { URL.revokeObjectURL(recPreviewURL); recPreviewURL = null; }
+        if (recAudioEl) { recAudioEl.pause(); recAudioEl = null; }
+        renderRecIdle();
+    }
+
+    async function startRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            recordedChunks = [];
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+            mediaRecorder.stream = stream;
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) recordedChunks.push(e.data);
+            };
+            mediaRecorder.onstop = () => {
+                recordedAudioBlob = new Blob(recordedChunks, { type: 'audio/webm' });
+                stream.getTracks().forEach(t => t.stop());
+                renderRecDone();
+            };
+            mediaRecorder.start();
+            renderRecRecording();
+        } catch (err) {
+            console.error('Recording failed:', err);
+        }
+    }
+
+    function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
+    }
+
+    // ========================================================================
+    // INTERACTIONS
+    // ========================================================================
+    function toggleDetail(el) {
+        el.querySelector('.entry-detail').classList.toggle('show');
+    }
+
+    async function openModal() {
+        const modal = document.getElementById('logModal');
+        modal.classList.add('active');
+        const now = new Date();
+        document.getElementById('tallyPreview').textContent = `#${nextTallyNumber}`;
+        document.getElementById('timestampPreview').textContent = `${formatDate(now)}, ${formatTime(now)}`;
+        document.getElementById('logForm').reset();
+        document.getElementById('intensityField').value = 5;
+        document.getElementById('intensityValue').textContent = '5';
+        document.getElementById('intensityLabel').textContent = intensityLabel(5);
+        clearMediaState();
+    }
+
+    function closeModal() {
+        clearMediaState();
+        document.getElementById('logModal').classList.remove('active');
+    }
+
+    function switchTab(name) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+        document.getElementById(name).classList.add('active');
+        document.querySelector(`[data-tab="${name}"]`).classList.add('active');
+        if (name === 'timeline') renderTimeline(
+            document.getElementById('triggerFilter').value,
+            document.getElementById('searchInput').value,
+            document.getElementById('mediaFilter').value
+        );
+        if (name === 'analytics') renderAnalytics();
+        if (name === 'tools') refreshVaultStatus();
+    }
+
+    function getCurrentFilters() {
+        return {
+            trigger: document.getElementById('triggerFilter').value,
+            search: document.getElementById('searchInput').value,
+            media: document.getElementById('mediaFilter').value
+        };
+    }
+
+    function applyFilters() {
+        const f = getCurrentFilters();
+        renderTimeline(f.trigger, f.search, f.media);
+    }
+
+    // ========================================================================
+    // COLLECT MEDIA FROM FORM
+    // ========================================================================
+    async function collectMedia() {
+        const media = {
+            photoBlob: null, photoName: null,
+            videoBlob: null, videoName: null,
+            audioBlob: null, audioName: null,
+            audioRecorded: false
+        };
+
+        if (selectedPhoto) {
+            media.photoBlob = selectedPhoto;
+            media.photoName = selectedPhoto.name;
+        }
+        if (selectedVideo) {
+            media.videoBlob = selectedVideo;
+            media.videoName = selectedVideo.name;
+        }
+
+        // Recorded audio takes precedence over file upload
+        if (recordedAudioBlob) {
+            media.audioBlob = recordedAudioBlob;
+            media.audioName = 'recording.webm';
+            media.audioRecorded = true;
+        } else if (selectedAudio) {
+            media.audioBlob = selectedAudio;
+            media.audioName = selectedAudio.name;
+            media.audioRecorded = false;
+        }
+
+        return media;
+    }
+
+    // ========================================================================
+    // INIT
+    // ========================================================================
+    document.addEventListener('DOMContentLoaded', async () => {
+        // ── RENDER SAFETY ──
+        // Boot veil stays up until storage is verified and (if needed) recovery completes
+        const veil = document.getElementById('bootVeil');
+        try {
+            await openDB();
+            await loadFromDB();
+            renderDashboard();
+            await refreshVaultStatus();
+            // Surface mode in brand subtitle for DEMO clarity
+            if (APP_MODE === 'DEMO') {
+                const sub = document.querySelector('.brand-sub');
+                if (sub) sub.textContent = 'a sample memory archive';
+                const bm = document.getElementById('backupBtnMode');
+                if (bm) bm.textContent = 'Demo';
+            }
+        } catch (err) {
+            console.error('Boot init failed:', err);
+            // Keep veil up on critical failure rather than rendering empty UI
+            veil.querySelector('.veil-mark').textContent = 'storage check failed';
+            return;
+        }
+        // Lift the veil
+        veil.classList.add('hidden');
+        setTimeout(function() { veil.style.display = 'none'; }, 500);
+
+        // (DEMO lockdown moved to end of init — see below)
+
+        // Check for recording support & show rec row
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia && typeof MediaRecorder !== 'undefined') {
+            document.getElementById('recRow').style.display = '';
+        }
+
+        // Tab navigation
+        document.querySelectorAll('.nav-tab').forEach(t =>
+            t.addEventListener('click', () => switchTab(t.dataset.tab))
+        );
+
+        // Modal open / close
+        document.getElementById('logButton').addEventListener('click', openModal);
+        document.getElementById('closeModal').addEventListener('click', closeModal);
+        document.getElementById('logModal').addEventListener('click', e => {
+            if (e.target === document.getElementById('logModal')) closeModal();
+        });
+
+        // Form submit
+        document.getElementById('logForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const media = await collectMedia();
+            await createEntryAsync(
+                document.getElementById('noteField').value.trim(),
+                document.getElementById('triggerField').value,
+                document.getElementById('intensityField').value,
+                media
+            );
+            closeModal();
+            renderDashboard();
+            await refreshVaultStatus();
+            if (document.getElementById('timeline').classList.contains('active')) applyFilters();
+        });
+
+        // Intensity slider
+        document.getElementById('intensityField').addEventListener('input', e => {
+            document.getElementById('intensityValue').textContent = e.target.value;
+            document.getElementById('intensityLabel').textContent = intensityLabel(e.target.value);
+        });
+
+        // Timeline filters
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+        document.getElementById('triggerFilter').addEventListener('change', applyFilters);
+        document.getElementById('mediaFilter').addEventListener('change', applyFilters);
+
+        // ── MEDIA: Photo ──
+        document.getElementById('photoBtn').addEventListener('click', () => {
+            document.getElementById('photoInput').click();
+        });
+        document.getElementById('photoInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            selectedPhoto = file;
+            document.getElementById('photoBtn').innerHTML = '<span class="fname">' + escapeHtml(file.name) + '</span>';
+            document.getElementById('photoClear').style.display = '';
+            // Thumbnail
+            if (photoThumbURL) URL.revokeObjectURL(photoThumbURL);
+            photoThumbURL = URL.createObjectURL(file);
+            const thumb = document.getElementById('photoThumb');
+            thumb.src = photoThumbURL;
+            thumb.style.display = '';
+        });
+        document.getElementById('photoClear').addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectedPhoto = null;
+            document.getElementById('photoInput').value = '';
+            document.getElementById('photoBtn').innerHTML = 'Attach photo';
+            document.getElementById('photoClear').style.display = 'none';
+            if (photoThumbURL) { URL.revokeObjectURL(photoThumbURL); photoThumbURL = null; }
+            document.getElementById('photoThumb').style.display = 'none';
+            document.getElementById('photoThumb').src = '';
+        });
+
+        // ── MEDIA: Video ──
+        document.getElementById('videoBtn').addEventListener('click', () => {
+            document.getElementById('videoInput').click();
+        });
+        document.getElementById('videoInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            selectedVideo = file;
+            document.getElementById('videoBtn').innerHTML = '<span class="fname">' + escapeHtml(file.name) + '</span>';
+            document.getElementById('videoClear').style.display = '';
+        });
+        document.getElementById('videoClear').addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectedVideo = null;
+            document.getElementById('videoInput').value = '';
+            document.getElementById('videoBtn').innerHTML = 'Attach video';
+            document.getElementById('videoClear').style.display = 'none';
+        });
+
+        // ── MEDIA: Audio upload ──
+        document.getElementById('audioBtn').addEventListener('click', () => {
+            document.getElementById('audioInput').click();
+        });
+        document.getElementById('audioInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            selectedAudio = file;
+            document.getElementById('audioBtn').innerHTML = '<span class="fname">' + escapeHtml(file.name) + '</span>';
+            document.getElementById('audioClear').style.display = '';
+        });
+        document.getElementById('audioClear').addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectedAudio = null;
+            document.getElementById('audioInput').value = '';
+            document.getElementById('audioBtn').innerHTML = 'Attach audio';
+            document.getElementById('audioClear').style.display = 'none';
+        });
+
+        // ── VAULT toggle ──
+        document.getElementById('vaultBtn').addEventListener('click', () => window.openVault());
+        document.getElementById('vaultClose').addEventListener('click', () => window.closeVault());
+
+        // ── TOOLS: Recovery scan ──
+        document.getElementById('runRecoveryBtn').addEventListener('click', async () => {
+            recoveryLog.length = 0;
+            entriesCache = await runRecovery();
+            const storedNum = await getMeta('nextTallyNumber');
+            nextTallyNumber = storedNum || 1;
+            renderDashboard();
+
+            const output = document.getElementById('recoveryOutput');
+            output.style.display = '';
+            output.textContent = recoveryLog.join('\n') || 'No recovery log generated.';
+        });
+
+        // ── TOOLS: Export (uses unified backup helper) ──
+        document.getElementById('exportBtn').addEventListener('click', async () => {
+            await createBackupSnapshot();
+            await refreshVaultStatus();
+        });
+
+        // ── TOOLS: Backup Private Vault Now (the safety button) ──
+        const backupNowBtn = document.getElementById('backupNowBtn');
+        if (backupNowBtn) {
+            backupNowBtn.addEventListener('click', async () => {
+                const result = await createBackupSnapshot();
+                const out = document.getElementById('backupOutput');
+                out.style.display = '';
+                out.textContent = `✓ Backup saved: ${result.filename} (${result.count} entries)`;
+                await refreshVaultStatus();
+            });
+        }
+
+        // ── TOOLS: Integrity check ──
+        const integrityBtn = document.getElementById('integrityBtn');
+        if (integrityBtn) {
+            integrityBtn.addEventListener('click', async () => {
+                await runIntegrityCheck();
+            });
+        }
+
+        // ── TOOLS: Import ──
+        document.getElementById('importFileBtn').addEventListener('click', () => {
+            document.getElementById('importFileInput').click();
+        });
+        document.getElementById('importFileInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                document.getElementById('importArea').value = reader.result;
+            };
+            reader.readAsText(file);
+        });
+        document.getElementById('importRunBtn').addEventListener('click', async () => {
+            const output = document.getElementById('importOutput');
+            output.style.display = '';
+
+            const raw = document.getElementById('importArea').value.trim();
+            if (!raw) { output.textContent = 'No data to import.'; return; }
+
+            try {
+                const parsed = JSON.parse(raw);
+                let candidates = [];
+
+                if (parsed.entries && Array.isArray(parsed.entries)) {
+                    candidates = parsed.entries.filter(looksLikeEntry);
+                } else if (Array.isArray(parsed)) {
+                    candidates = parsed.filter(looksLikeEntry);
+                } else if (looksLikeEntry(parsed)) {
+                    candidates = [parsed];
+                }
+
+                if (!candidates.length) {
+                    output.textContent = 'No valid entries found in JSON.';
+                    return;
+                }
+
+                const count = await safeMerge(candidates);
+
+                // Refresh
+                entriesCache = await getAllEntries();
+                const maxTally = entriesCache.reduce((m, e) => Math.max(m, e.tallyNumber || 0), 0);
+                nextTallyNumber = maxTally + 1;
+                await setMeta('nextTallyNumber', nextTallyNumber);
+                renderDashboard();
+                await refreshVaultStatus();
+
+                output.textContent = `Imported ${count} new entries. ${candidates.length - count} duplicates skipped. Total: ${entriesCache.length} entries.`;
+                document.getElementById('importArea').value = '';
+            } catch (err) {
+                output.textContent = 'Error parsing JSON: ' + err.message;
+            }
+        });
+
+        // ── DEMO MODE LOCKDOWN ──
+        // Runs LAST so capture-phase interceptors fire before any private-mode handlers.
+        // Uses stopImmediatePropagation to halt all subsequent click handlers.
+        if (APP_MODE === 'DEMO') {
+            var lockTargets = [
+                { id: 'logButton', msg: 'Demo mode · creating new memories is disabled' },
+                { id: 'backupNowBtn', msg: 'Backup is private mode only' },
+                { id: 'integrityBtn', msg: 'Integrity check is private mode only' },
+                { id: 'runRecoveryBtn', msg: 'Recovery scan is private mode only' },
+                { id: 'exportBtn', msg: 'Export is private mode only' },
+                { id: 'importFileBtn', msg: 'Import is private mode only' },
+                { id: 'importRunBtn', msg: 'Import is private mode only' }
+            ];
+            lockTargets.forEach(function(t) {
+                var el = document.getElementById(t.id);
+                if (!el) return;
+                el.classList.add('demo-locked');
+                // Capture-phase: fires BEFORE any bubbling listener attached above
+                el.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    showDemoLock(t.msg);
+                }, true);
+            });
+
+            var ta = document.getElementById('importArea');
+            if (ta) {
+                ta.disabled = true;
+                ta.placeholder = 'Demo mode · import disabled';
+                ta.classList.add('demo-locked');
+            }
+
+            var integrityStatus = document.getElementById('statusIntegrity');
+            if (integrityStatus) integrityStatus.style.display = 'none';
+
+            var statusModeEl = document.getElementById('statusMode');
+            if (statusModeEl) statusModeEl.textContent = 'DEMO · PUBLIC';
+        }
+    });
+</script>
+
+<!-- APOTHECARY VAULT ENGINE -->
+<script>
+(function() {
+    'use strict';
+    var urls = [];
+    function esc(t) { var d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+
+    function iColor(n) {
+        if (n <= 2) return { glass:'linear-gradient(170deg,#a09868,#6a6040,#504830)', glow:'#b0a060', mist:'rgba(160,140,80,0.4)' };
+        if (n <= 4) return { glass:'linear-gradient(170deg,#7888b8,#4a5580,#3a4060)', glow:'#7088c0', mist:'rgba(100,120,200,0.4)' };
+        if (n <= 6) return { glass:'linear-gradient(170deg,#58b878,#3a7050,#2a5038)', glow:'#50b070', mist:'rgba(60,180,100,0.4)' };
+        if (n <= 8) return { glass:'linear-gradient(170deg,#c050a0,#803060,#602048)', glow:'#c060a0', mist:'rgba(200,70,140,0.4)' };
+        return { glass:'linear-gradient(170deg,#c04838,#802020,#501010)', glow:'#d04030', mist:'rgba(220,60,40,0.45)' };
+    }
+
+    function makeBottle(entry, size) {
+        var c = iColor(entry.intensity);
+        // Intensity-based height scale: 0.75 (intensity 1) → 1.35 (intensity 10)
+        var heightScale = 0.75 + ((Math.max(1, Math.min(10, entry.intensity)) - 1) / 9) * 0.60;
+        var w = size, h = size * (2.2 + Math.random()*0.5) * heightScale;
+        var nw = w*0.4, nh = h*0.16, cw = nw*0.85;
+        var el = document.createElement('div');
+        el.className = 'v-bottle';
+        el.style.transformOrigin = 'bottom center';
+        el.style.animationDelay = (-Math.random()*4)+'s';
+        el.style.animationDuration = (3.5+Math.random()*2)+'s';
+        el.innerHTML =
+            '<div class="v-label">#'+entry.tallyNumber+'</div>'+
+            '<div class="v-cork" style="width:'+cw+'px;height:'+(size*0.16)+'px;"></div>'+
+            '<div class="v-neck" style="width:'+nw+'px;height:'+nh+'px;background:linear-gradient(to bottom,rgba(140,120,80,0.3),rgba(80,60,40,0.2));"></div>'+
+            '<div class="v-glass" style="width:'+w+'px;height:'+h+'px;background:'+c.glass+';"></div>'+
+            '<div class="v-glow" style="background:'+c.glow+';"></div>';
+        el.addEventListener('click', function(){ openMemory(entry); });
+        return el;
+    }
+
+    function makeGhost() {
+        // Dim shadow bottle for atmosphere on empty shelves
+        var h = 20 + Math.random()*18;
+        var w = 8 + Math.random()*6;
+        var el = document.createElement('div');
+        el.className = 'shelf-ghost';
+        el.innerHTML = '<div class="sg-neck" style="width:'+(w*0.4)+'px;height:4px;"></div>'+
+                       '<div class="sg-body" style="width:'+w+'px;height:'+h+'px;"></div>';
+        return el;
+    }
+
+    // Seeded pseudo-random — stable per session but varied
+    function seedRand(seed) {
+        var s = seed;
+        return function() {
+            s = (s * 9301 + 49297) % 233280;
+            return s / 233280;
+        };
+    }
+
+    // Distribute N entries across S shelves with intentional irregularity
+    function distributeEntries(count, shelvesAvailable) {
+        // Build a plan: array of arrays — each inner array holds entry indices for that shelf
+        var plan = [];
+        for (var i = 0; i < shelvesAvailable; i++) plan.push([]);
+        if (count === 0) return plan;
+
+        // Patterns for visual rhythm — uneven shelf populations
+        // weight by position so middle shelves get more, edges get less
+        var weights = [];
+        for (var s = 0; s < shelvesAvailable; s++) {
+            // bell curve weighting, with randomness
+            var center = (shelvesAvailable - 1) / 2;
+            var dist = Math.abs(s - center);
+            var w = Math.max(0.1, 1 - dist / shelvesAvailable);
+            weights.push(w);
+        }
+
+        // Cap each shelf at 4 bottles, force some shelves to have only 1
+        var rng = seedRand(count * 1000 + 42);
+        var idx = 0;
+        var totalWeight = weights.reduce(function(a,b){return a+b;}, 0);
+
+        // First pass: minimum 1 bottle on lit shelves until exhausted
+        // But not every shelf — leave some empty for sparsity
+        while (idx < count) {
+            // pick a shelf weighted by remaining capacity and bell weight
+            var pickWeights = weights.map(function(w, i) {
+                var capacity = 4 - plan[i].length;
+                if (capacity <= 0) return 0;
+                // Add sparsity: chance of skipping
+                return w * capacity;
+            });
+            var sum = pickWeights.reduce(function(a,b){return a+b;}, 0);
+            if (sum === 0) break;
+            var r = rng() * sum;
+            var pick = 0;
+            for (var p = 0; p < pickWeights.length; p++) {
+                r -= pickWeights[p];
+                if (r <= 0) { pick = p; break; }
+            }
+            plan[pick].push(idx);
+            idx++;
+        }
+
+        return plan;
+    }
+
+    // Three justification options for visual variety
+    var JUSTIFY_OPTS = ['flex-start', 'center', 'flex-end'];
+
+    // ── Fixed chamber layout ──
+    var CHAMBER_SHELVES = 7;          // total visible shelves per chamber page
+    var CHAMBER_LIT_START = 1;        // shelf index where bottles can live
+    var CHAMBER_LIT_END = 5;          // last shelf where bottles can live
+    var CHAMBER_LIT_COUNT = CHAMBER_LIT_END - CHAMBER_LIT_START + 1; // 5 lit shelves
+    var BOTTLES_PER_PAGE = 14;        // capacity per chamber (avg ~3 per lit shelf, irregular)
+    var currentPage = 0;
+
+    function totalPages() {
+        var entries = typeof entriesCache !== 'undefined' ? entriesCache : [];
+        return Math.max(1, Math.ceil(entries.length / BOTTLES_PER_PAGE));
+    }
+
+    function buildChamber() {
+        var shelves = document.getElementById('vaultShelves');
+        var entries = typeof entriesCache !== 'undefined' ? entriesCache.slice() : [];
+
+        if (!entries.length) {
+            shelves.innerHTML = '<div class="vault-empty">No memories yet.</div>';
+            updateNavMarkers();
+            return;
+        }
+
+        // Clamp current page
+        var pages = totalPages();
+        if (currentPage >= pages) currentPage = pages - 1;
+        if (currentPage < 0) currentPage = 0;
+
+        // Slice entries for current page
+        var start = currentPage * BOTTLES_PER_PAGE;
+        var pageEntries = entries.slice(start, start + BOTTLES_PER_PAGE);
+
+        shelves.innerHTML = '';
+
+        // Distribute this page's entries irregularly across the lit shelves
+        var plan = distributeEntries(pageEntries.length, CHAMBER_LIT_COUNT);
+
+        // Stable seed per page so each page has its own layout but consistent on revisit
+        var rng = seedRand(currentPage * 1000 + pageEntries.length * 7 + 13);
+
+        for (var r = 0; r < CHAMBER_SHELVES; r++) {
+            var row = document.createElement('div');
+            row.className = 'vault-shelf-row';
+
+            // Sconces on lit edges
+            var sconceLeft = (r === CHAMBER_LIT_START || r === CHAMBER_LIT_END);
+            var sconceRight = (r === CHAMBER_LIT_START + 1 || r === CHAMBER_LIT_END - 1);
+            if (sconceLeft) {
+                row.innerHTML += '<div class="vault-sconce" style="position:absolute;left:-24px;top:10px;"><div class="sconce-pool"></div><div class="sconce-arm"></div><div class="sconce-flame"></div></div>';
+            }
+            if (sconceRight) {
+                row.innerHTML += '<div class="vault-sconce" style="position:absolute;right:-24px;top:10px;"><div class="sconce-pool"></div><div class="sconce-arm"></div><div class="sconce-flame"></div></div>';
+            }
+
+            var bottleRow = document.createElement('div');
+            bottleRow.className = 'shelf-bottles';
+
+            // Vary alignment per shelf
+            var justifyChoice = JUSTIFY_OPTS[Math.floor(rng() * 3)];
+            bottleRow.style.justifyContent = justifyChoice;
+            bottleRow.style.paddingLeft = (16 + Math.floor(rng() * 60)) + 'px';
+            bottleRow.style.paddingRight = (16 + Math.floor(rng() * 60)) + 'px';
+            bottleRow.style.gap = (6 + Math.floor(rng() * 18)) + 'px';
+
+            var shelfPlan = (r >= CHAMBER_LIT_START && r <= CHAMBER_LIT_END) ? plan[r - CHAMBER_LIT_START] : [];
+
+            if (shelfPlan && shelfPlan.length > 0) {
+                shelfPlan.forEach(function(entryIdx) {
+                    var size = 22 + rng() * 12;
+                    bottleRow.appendChild(makeBottle(pageEntries[entryIdx], size));
+                });
+            } else if (r >= CHAMBER_LIT_START && r <= CHAMBER_LIT_END) {
+                // Lit shelf with no real entries — sparse ghost cluster
+                var ghostCount = 1 + Math.floor(rng() * 3);
+                for (var g = 0; g < ghostCount; g++) {
+                    bottleRow.appendChild(makeGhost());
+                }
+            } else {
+                // Edge shelves — heavy ghost atmosphere
+                var ghostCount2 = 2 + Math.floor(rng() * 4);
+                for (var g2 = 0; g2 < ghostCount2; g2++) {
+                    bottleRow.appendChild(makeGhost());
+                }
+            }
+
+            row.appendChild(bottleRow);
+
+            var plank = document.createElement('div');
+            plank.className = 'shelf-surface';
+            row.appendChild(plank);
+
+            shelves.appendChild(row);
+        }
+
+        updateNavMarkers();
+    }
+
+    function updateNavMarkers() {
+        var pages = totalPages();
+        var prev = document.getElementById('vaultPrev');
+        var next = document.getElementById('vaultNext');
+        var ind = document.getElementById('vaultPageInd');
+        if (currentPage > 0) prev.classList.add('visible'); else prev.classList.remove('visible');
+        if (currentPage < pages - 1) next.classList.add('visible'); else next.classList.remove('visible');
+        if (pages > 1) {
+            ind.classList.add('visible');
+            ind.textContent = 'Chamber ' + (currentPage + 1) + ' of ' + pages;
+        } else {
+            ind.classList.remove('visible');
+        }
+    }
+
+    function changePage(delta) {
+        var pages = totalPages();
+        var target = currentPage + delta;
+        if (target < 0 || target >= pages) return;
+        var shelves = document.getElementById('vaultShelves');
+        shelves.classList.add('fading');
+        setTimeout(function() {
+            currentPage = target;
+            buildChamber();
+            shelves.classList.remove('fading');
+        }, 500);
+    }
+
+    function openMemory(entry) {
+        var overlay = document.getElementById('vaultFocus');
+        var inner = document.getElementById('vaultFocusInner');
+        var c = iColor(entry.intensity);
+        var bW=52, bH=100, bNW=22, bNH=18, bCW=20;
+
+        var media = '';
+        if (entry.photoBlob) { var u=URL.createObjectURL(entry.photoBlob); urls.push(u); media+='<img src="'+u+'">'; }
+        if (entry.videoBlob) { var u2=URL.createObjectURL(entry.videoBlob); urls.push(u2); media+='<video src="'+u2+'" controls playsinline></video>'; }
+        if (entry.audioBlob) { var u3=URL.createObjectURL(entry.audioBlob); urls.push(u3); media+='<audio src="'+u3+'" controls></audio>'; }
+
+        inner.innerHTML =
+            '<div class="focus-mist" style="background:'+c.mist+';"></div>'+
+            '<div class="focus-bottle-big">'+
+                '<div class="v-cork" style="width:'+bCW+'px;height:9px;"></div>'+
+                '<div class="v-neck" style="width:'+bNW+'px;height:'+bNH+'px;background:linear-gradient(to bottom,rgba(140,120,80,0.3),rgba(80,60,40,0.2));border-radius:3px 3px 0 0;"></div>'+
+                '<div class="v-glass" style="width:'+bW+'px;height:'+bH+'px;background:'+c.glass+';border-radius:4px 4px 10px 10px;"></div>'+
+            '</div>'+
+            '<div class="vc">'+
+                '<button class="vc-close" id="vcClose">&times;</button>'+
+                '<div class="vc-num">#'+entry.tallyNumber+'</div>'+
+                '<div class="vc-date">'+entry.humanDate+', '+entry.humanTime+'</div>'+
+                (entry.note?'<div class="vc-note">'+esc(entry.note)+'</div>':'')+
+                '<div class="vc-meta">'+
+                    (entry.trigger?'<span class="vc-trigger">'+entry.trigger+'</span>':'')+
+                    '<span>'+entry.intensity+' / 10 · '+intensityLabel(entry.intensity)+'</span>'+
+                '</div>'+
+                (media?'<div class="vc-media">'+media+'</div>':'')+
+            '</div>';
+
+        overlay.classList.add('active');
+        document.getElementById('vcClose').addEventListener('click', closeMemory);
+        overlay.addEventListener('click', function handler(e) {
+            if (e.target === overlay) { closeMemory(); overlay.removeEventListener('click', handler); }
+        });
+    }
+
+    function closeMemory() {
+        document.getElementById('vaultFocus').classList.remove('active');
+        urls.forEach(function(u){ URL.revokeObjectURL(u); });
+        urls = [];
+    }
+
+    var navWired = false;
+    function wireNav() {
+        if (navWired) return;
+        navWired = true;
+        document.getElementById('vaultPrev').addEventListener('click', function() { changePage(-1); });
+        document.getElementById('vaultNext').addEventListener('click', function() { changePage(1); });
+    }
+
+    window.openVault = function() {
+        document.getElementById('vaultOverlay').classList.add('active');
+        document.querySelector('.shell').style.display = 'none';
+        currentPage = 0;
+        buildChamber();
+        wireNav();
+        var hint = document.getElementById('vaultHint');
+        hint.style.opacity = '1';
+        setTimeout(function(){ hint.style.opacity = '0'; }, 5000);
+    };
+
+    window.closeVault = function() {
+        document.getElementById('vaultOverlay').classList.remove('active');
+        document.querySelector('.shell').style.display = '';
+        closeMemory();
+    };
+})();
+</script>
+
+</body></html>
