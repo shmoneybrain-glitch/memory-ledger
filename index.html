@@ -212,6 +212,105 @@
             border-color: var(--accent-dim);
         }
 
+        /* ── MARK IT (quick-log) ── */
+        .mark-it-btn {
+            display: block;
+            width: 100%;
+            margin-top: 12px;
+            background: var(--bg-raised);
+            border: 1px solid var(--accent-dim);
+            color: var(--accent-glow);
+            padding: 14px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+        .mark-it-btn:hover {
+            background: var(--accent-dim);
+            color: var(--bg);
+        }
+        .mark-it-btn.demo-locked:hover {
+            background: var(--bg-raised);
+            color: var(--accent-glow);
+        }
+        .mark-panel {
+            margin-top: 12px;
+            border: 1px solid var(--border);
+            background: var(--bg-inset);
+            padding: 0 22px;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.32s ease, opacity 0.28s ease, padding 0.32s ease;
+        }
+        .mark-panel.open {
+            max-height: 320px;
+            opacity: 1;
+            padding: 22px 22px 20px;
+        }
+        .mark-panel-head {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 9px;
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
+            color: var(--text-faint);
+            margin-bottom: 14px;
+            text-align: center;
+        }
+        .mark-panel .intensity-display {
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+        .mark-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+        }
+        .mark-confirm, .mark-cancel {
+            flex: 1;
+            background: none;
+            color: var(--accent-glow);
+            border: 1px solid var(--accent-dim);
+            padding: 12px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mark-confirm:hover { background: var(--accent-dim); color: var(--bg); }
+        .mark-cancel {
+            color: var(--text-faint);
+            border-color: var(--border);
+        }
+        .mark-cancel:hover { color: var(--text-dim); border-color: var(--border-hover); }
+        .mark-toast {
+            position: fixed;
+            left: 50%;
+            bottom: 32px;
+            transform: translate(-50%, 12px);
+            background: var(--bg-raised);
+            border: 1px solid var(--accent-dim);
+            color: var(--accent-glow);
+            padding: 10px 22px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s ease, transform 0.35s ease;
+            z-index: 1500;
+        }
+        .mark-toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
         /* ── MODAL ── */
         .modal {
             display: none;
@@ -1084,9 +1183,25 @@
         </div>
 
         <button class="log-btn" id="logButton">Record a moment</button>
+        <button class="mark-it-btn" id="markItBtn" aria-expanded="false" aria-controls="markPanel">Mark It</button>
+        <div class="mark-panel" id="markPanel" aria-hidden="true">
+            <div class="mark-panel-head">A moment of weakness</div>
+            <div class="intensity-display">
+                <span class="i-num" id="markIntensityNum">6</span>
+                <span class="i-divider">/ 10</span>
+                <span class="i-dot">·</span>
+                <span class="i-label" id="markIntensityLabel">Heavy on my mind</span>
+            </div>
+            <input type="range" class="i-slider" id="markIntensitySlider" min="1" max="10" value="6" aria-label="Intensity">
+            <div class="mark-actions">
+                <button type="button" class="mark-cancel" id="markCancel">Cancel</button>
+                <button type="button" class="mark-confirm" id="markConfirm">Log it</button>
+            </div>
+        </div>
         <button class="log-btn" id="vaultBtn" style="margin-top: 12px; border-color: var(--border); color: var(--text-dim);">Enter the Vault</button>
         <div style="margin-top: 48px; text-align: center; font-family: -apple-system, sans-serif; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: rgba(138,130,120,0.25);">an exploration of absence, memory, and time</div>
     </section>
+    <div class="mark-toast" id="markToast">Logged</div>
 
     <!-- ── TIMELINE ── -->
     <section id="timeline" class="section">
@@ -1094,6 +1209,7 @@
             <input type="text" class="search-input" id="searchInput" placeholder="Search entries...">
             <select class="filter-select" id="triggerFilter">
                 <option value="">All triggers</option>
+                <option value="moment">Moment</option>
                 <option value="memory">Memory</option>
                 <option value="song">Song</option>
                 <option value="place">Place</option>
@@ -2669,6 +2785,67 @@
             document.getElementById('intensityLabel').textContent = intensityLabel(e.target.value);
         });
 
+        // ── Mark It (quick-log) ──
+        const markBtn = document.getElementById('markItBtn');
+        const markPanel = document.getElementById('markPanel');
+        const markSlider = document.getElementById('markIntensitySlider');
+        const markNum = document.getElementById('markIntensityNum');
+        const markLabel = document.getElementById('markIntensityLabel');
+        const markCancel = document.getElementById('markCancel');
+        const markConfirm = document.getElementById('markConfirm');
+        const markToast = document.getElementById('markToast');
+
+        function resetMarkPanel() {
+            markSlider.value = 6;
+            markNum.textContent = '6';
+            markLabel.textContent = intensityLabel(6);
+        }
+        function openMarkPanel() {
+            resetMarkPanel();
+            markPanel.classList.add('open');
+            markPanel.setAttribute('aria-hidden', 'false');
+            markBtn.setAttribute('aria-expanded', 'true');
+        }
+        function closeMarkPanel() {
+            markPanel.classList.remove('open');
+            markPanel.setAttribute('aria-hidden', 'true');
+            markBtn.setAttribute('aria-expanded', 'false');
+        }
+        function showMarkToast(msg) {
+            markToast.textContent = msg || 'Logged';
+            markToast.classList.add('show');
+            clearTimeout(showMarkToast._t);
+            showMarkToast._t = setTimeout(() => markToast.classList.remove('show'), 1600);
+        }
+
+        markBtn.addEventListener('click', () => {
+            if (markPanel.classList.contains('open')) closeMarkPanel();
+            else openMarkPanel();
+        });
+        markCancel.addEventListener('click', closeMarkPanel);
+        markSlider.addEventListener('input', e => {
+            markNum.textContent = e.target.value;
+            markLabel.textContent = intensityLabel(e.target.value);
+        });
+        markConfirm.addEventListener('click', async () => {
+            if (markConfirm.disabled) return;
+            markConfirm.disabled = true;
+            try {
+                const intensity = parseInt(markSlider.value) || 6;
+                await createEntryAsync('', 'moment', intensity, {});
+                closeMarkPanel();
+                showMarkToast('Logged');
+                renderDashboard();
+                await refreshVaultStatus();
+                if (document.getElementById('timeline').classList.contains('active')) applyFilters();
+            } catch (err) {
+                console.error('Mark It failed:', err);
+                showMarkToast('Save failed');
+            } finally {
+                markConfirm.disabled = false;
+            }
+        });
+
         // Timeline filters
         document.getElementById('searchInput').addEventListener('input', applyFilters);
         document.getElementById('triggerFilter').addEventListener('change', applyFilters);
@@ -2843,6 +3020,8 @@
         if (APP_MODE === 'DEMO') {
             var lockTargets = [
                 { id: 'logButton', msg: 'Demo mode · creating new memories is disabled' },
+                { id: 'markItBtn', msg: 'Demo mode · quick-log is disabled' },
+                { id: 'markConfirm', msg: 'Demo mode · quick-log is disabled' },
                 { id: 'backupNowBtn', msg: 'Backup is private mode only' },
                 { id: 'integrityBtn', msg: 'Integrity check is private mode only' },
                 { id: 'runRecoveryBtn', msg: 'Recovery scan is private mode only' },
